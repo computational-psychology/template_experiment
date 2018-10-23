@@ -222,23 +222,25 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     whlf = WIDTH/2.0
     hhlf = HEIGHT/2.0
 
+    # clears screen
     hrl.graphics.flip()
     
+    # draws fixation dot in the middle
     frm1 = hrl.graphics.newTexture(np.ones((2, 2))*0.0)
     frm1.draw(( whlf, hhlf))
     hrl.graphics.flip()
         
+    # sleeps for 250 ms
     time.sleep(0.25)
     
-    # function written by Torsten and edited by me
-    # read out variable values for each trial from the designmatrix
+    # 
     print "TRIAL =", trl
     
-    #show break automatically, define after how many trials
+    #show a break screen automatically after so many trials
     if (trl-start_trl)%80==0 and (trl-start_trl)!=0: 
         show_break(hrl,trl, (start_trl + (end_trl-start_trl)))
     
-    
+    # current trial design variables
     thistrial = int(design['Trial'][trl])
     tau1 = float(design['tau1'][trl])
     tau2 = float(design['tau2'][trl])
@@ -250,6 +252,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     print tau2
     print alpha2
     
+    # stimuli
     trialname1 = '%d_a_%.2f_tau_%.2f' % (thistrial, alpha1, tau1)
     stim_name1 = 'stimuli/%s/block_%d_%s_cropped' % (vp_id, block, trialname1)
         
@@ -275,7 +278,8 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
          
     # flip everything
     hrl.graphics.flip(clr=False)   # clr= True to clear buffer
-        
+    
+    # loop for waiting a response
     no_resp = True 
     while no_resp: # as long as no_resp TRUE
         response, btn, t1 = read_response(hrl)
@@ -286,7 +290,9 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     rfl.write('%d\t%d\t%f\t%f\t%f\t%f\t%d\t%f\t%f\n' % (block, trl, alpha1, alpha2, tau1, tau2, response, t1, time.time()))
     rfl.flush()
 
-    # clean checkerboard texture    
+    # clean checkerboard texture from buffer
+    # (needed! Specially if hundreds of trials are presented, if not 
+    # cleared they accummulate in buffer)
     graphics.deleteTextureDL(checkerboard1._dlid)
     graphics.deleteTextureDL(checkerboard2._dlid)
 
@@ -302,8 +308,7 @@ if __name__ == '__main__':
     LANG ='en' # 'de' or 'en'
     
     # log file name and location
-    ## this is the design matrix which is loaded and the result matrix
-    # Design and Result matrix files names
+    ## this is the design matrix which is loaded
     vp_id   = raw_input ('Please input the observer name (e.g. demo): ')
     
     ## determines which blocks to run
@@ -334,9 +339,10 @@ if __name__ == '__main__':
         bfl.write('\t'.join(block_headers)+'\n')
         bfl.flush()
         
-    
+    # Pass this to HRL if we want to use gamma correction.
+    lut = 'lut.csv'     
    
-    # create HRL object                     
+    ## create HRL object                     
     hrl = HRL(graphics='datapixx',
               inputs='responsepixx',
               photometer=None,
@@ -344,10 +350,12 @@ if __name__ == '__main__':
               hght=HEIGHT,
               bg=0.27,
               scrn=1,
-              lut='lut.csv',
+              lut=lut,
               db = False,
               fs=True)
 
+    # if you want to run this in your own computer, uncomment this call and 
+    # comment the previous HRL call
     #hrl = HRL(graphics='gpu',
     #          inputs='keyboard',
     #          photometer=None,
@@ -355,7 +363,7 @@ if __name__ == '__main__':
     #          hght=HEIGHT,
     #          bg=0.27,
     #          scrn=0,
-    #          lut='lut.csv',
+    #          lut=lut,
     #          db = True,
     #          fs=False)
                   
@@ -368,12 +376,8 @@ if __name__ == '__main__':
         
         print "Block %d " % (sess)
         
-        # sess    = np.int(raw_input ('Bitte geben Sie die Nummer des Blocks ein (z.B. 1): '))
-        # med     = raw_input ('Bitte geben Sie die Bedingung ein (z.B. plain, transp.dark,transp.light): ')
-        
         start_trl = get_last_trial(vp_id, sess)   
-        
-        
+                
         # log file name and location
         design = read_design_csv('design/%s/block_%d.csv' %(vp_id, sess))
         rfl    = open('results/%s/%s_block_%d.txt' %(vp_id, vp_id, sess), 'a')
@@ -381,9 +385,6 @@ if __name__ == '__main__':
         #  get end trial
         end_trl   = len(design['Trial'])
         
-
-        # Pass this to HRL if we want to use gamma correction.
-        lut = 'lut.csv'    
 
         if start_trl == 0:
             result_headers = ['block', 'trial', 'alpha1', 'alpha2', 'tau1', 'tau2', 'Response', 'resp.time', 'timestamp']
