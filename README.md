@@ -1,2 +1,2 @@
-# template_experiment
-Template of experiment code using HRL
+# Code template for experiments using HRL
+
