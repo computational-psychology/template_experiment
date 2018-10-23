@@ -299,7 +299,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
 ### Run Main ###
 if __name__ == '__main__':
 
-    LANG ='de'
+    LANG ='en' # 'de' or 'en'
     
     # log file name and location
     ## this is the design matrix which is loaded and the result matrix
@@ -337,27 +337,27 @@ if __name__ == '__main__':
     
    
     # create HRL object                     
-    #hrl = HRL(graphics='datapixx',
-    #          inputs='responsepixx',
-    #          photometer=None,
-    #          wdth=WIDTH,
-    #          hght=HEIGHT,
-    #          bg=0.27,
-    #          scrn=1,
-    #          lut='lut.csv',
-    #          db = False,
-    #          fs=True)
-
-    hrl = HRL(graphics='gpu',
-              inputs='keyboard',
+    hrl = HRL(graphics='datapixx',
+              inputs='responsepixx',
               photometer=None,
               wdth=WIDTH,
               hght=HEIGHT,
               bg=0.27,
               scrn=1,
               lut='lut.csv',
-              db = True,
-              fs=False)
+              db = False,
+              fs=True)
+
+    #hrl = HRL(graphics='gpu',
+    #          inputs='keyboard',
+    #          photometer=None,
+    #          wdth=WIDTH,
+    #          hght=HEIGHT,
+    #          bg=0.27,
+    #          scrn=0,
+    #          lut='lut.csv',
+    #          db = True,
+    #          fs=False)
                   
     # #Iterate across all blocks that need to be presented
     for i in range(len(blockstorun['number'])):
