@@ -16,9 +16,14 @@ import numpy as np
 from PIL import Image
 import sys
 import time
-import Image, ImageFont, ImageDraw
+from PIL import Image, ImageFont, ImageDraw
 
-# size of monitor
+
+# flag to switch between running locally or running in the lab
+inlab = False
+
+
+# size of Siements monitor
 WIDTH=1024
 HEIGHT=768
 
@@ -138,7 +143,8 @@ def draw_text(text, bg=0.27, text_color=0, fontsize=48):
             "/usr/share/fonts/truetype/msttcorefonts/arial.ttf", fontsize,
             encoding='unic')
     text_width, text_height = font.getsize(text)
-    im = Image.new('L', (text_width, text_height), bg)
+    dims = (text_width, text_height)
+    im = Image.new('L', dims, int(bg))
     draw = ImageDraw.Draw(im)
     draw.text((0,0), text, fill=text_color, font=font)
     return np.array(im) / 255.
@@ -342,30 +348,30 @@ if __name__ == '__main__':
     # Pass this to HRL if we want to use gamma correction.
     lut = 'lut.csv'     
    
-    ## create HRL object                     
-    hrl = HRL(graphics='datapixx',
-              inputs='responsepixx',
-              photometer=None,
-              wdth=WIDTH,
-              hght=HEIGHT,
-              bg=0.27,
-              scrn=1,
-              lut=lut,
-              db = False,
-              fs=True)
+    if inlab:
+		## create HRL object
+		hrl = HRL(graphics='datapixx',
+				  inputs='responsepixx',
+				  photometer=None,
+				  wdth=WIDTH,
+				  hght=HEIGHT,
+				  bg=0.27,
+				  scrn=1,
+				  lut=lut,
+				  db = False,
+				  fs=True)
 
-    # if you want to run this in your own computer, uncomment this call and 
-    # comment the previous HRL call
-    #hrl = HRL(graphics='gpu',
-    #          inputs='keyboard',
-    #          photometer=None,
-    #          wdth=WIDTH,
-    #          hght=HEIGHT,
-    #          bg=0.27,
-    #          scrn=0,
-    #          lut=lut,
-    #          db = True,
-    #          fs=False)
+    else: 
+		hrl = HRL(graphics='gpu',
+				  inputs='keyboard',
+				  photometer=None,
+				  wdth=WIDTH,
+				  hght=HEIGHT,
+				  bg=0.27,
+				  scrn=0,
+				  lut=lut,
+				  db = True,
+				  fs=False)
                   
     # #Iterate across all blocks that need to be presented
     for i in range(len(blockstorun['number'])):
