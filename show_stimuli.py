@@ -99,7 +99,7 @@ def main(files):
         tex.draw(( whlf - tex.wdth/2 , hhlf - tex.hght/2))
         
         tex = texts[i]
-        tex.draw((10, 10))
+        tex.draw((100, 100))
         
         hrl.graphics.flip(clr=True)   # clr= True to clear buffer
         print "currently showing: %s" % files[i]
