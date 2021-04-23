@@ -260,10 +260,10 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     
     # stimuli
     trialname1 = '%d_a_%.2f_tau_%.2f' % (thistrial, alpha1, tau1)
-    stim_name1 = 'stimuli/%s/block_%d_%s_cropped' % (vp_id, block, trialname1)
+    stim_name1 = 'stimuli/%s/mlcm/block_%d_%s_cropped' % (vp_id, block, trialname1)
         
     trialname2 = '%d_a_%.2f_tau_%.2f' % (thistrial, alpha2, tau2)
-    stim_name2 = 'stimuli/%s/block_%d_%s_cropped' % (vp_id, block, trialname2)
+    stim_name2 = 'stimuli/%s/mlcm/block_%d_%s_cropped' % (vp_id, block, trialname2)
     
 
     #print stim_name
@@ -319,11 +319,11 @@ if __name__ == '__main__':
     
     ## determines which blocks to run
     # reads block order
-    blockorder = read_design('design/%s/%s_experiment_order.txt' %(vp_id, vp_id))
+    blockorder = read_design('design/%s/mlcm/%s_experiment_order.txt' %(vp_id, vp_id))
     
     # reads the blocks already done
     try:
-        blocksdone = read_design('results/%s/%s_blocks_done.txt' %(vp_id, vp_id))
+        blocksdone = read_design('results/%s/mlcm/%s_blocks_done.txt' %(vp_id, vp_id))
         
         # determine which blocks are left to run
         next = len(blocksdone['number'])
@@ -339,7 +339,7 @@ if __name__ == '__main__':
 
         
     # opens block file to write 
-    bfl = open('results/%s/%s_blocks_done.txt' %(vp_id, vp_id), 'a')
+    bfl = open('results/%s/mlcm/%s_blocks_done.txt' %(vp_id, vp_id), 'a')
     if blocksdone == None:
         block_headers = ['number', 'block']
         bfl.write('\t'.join(block_headers)+'\n')
@@ -368,7 +368,7 @@ if __name__ == '__main__':
 				  wdth=WIDTH,
 				  hght=HEIGHT,
 				  bg=0.27,
-				  scrn=0,
+				  scrn=1,
 				  lut=lut,
 				  db = True,
 				  fs=False)
@@ -385,8 +385,8 @@ if __name__ == '__main__':
         start_trl = get_last_trial(vp_id, sess)   
                 
         # log file name and location
-        design = read_design_csv('design/%s/block_%d.csv' %(vp_id, sess))
-        rfl    = open('results/%s/%s_block_%d.txt' %(vp_id, vp_id, sess), 'a')
+        design = read_design_csv('design/%s/mlcm/block_%d.csv' %(vp_id, sess))
+        rfl    = open('results/%s/mlcm/%s_block_%d.txt' %(vp_id, vp_id, sess), 'a')
         
         #  get end trial
         end_trl   = len(design['Trial'])
