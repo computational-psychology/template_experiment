@@ -5,7 +5,7 @@ Repository containing templates to be used with [HRL](https://github.com/computa
 
 ## MLCM experiment
 
-Run:  
+Run:
 
 ```
 python mlcm_experiment.py
@@ -13,6 +13,7 @@ python mlcm_experiment.py
 
 and use 'demo' as observer name
 
+<img src="screenshots/screenshot_mlcm.png" width="500"/>
 
 
 ## Asymmetric matching experiment with an external matching field
@@ -22,4 +23,6 @@ Run:
 python matching_experiment.py
 ```
 Use 'demo' as observer name
+
+<img src="screenshots/screenshot_matching.png" width="500"/>
 
