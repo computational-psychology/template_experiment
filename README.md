@@ -1,5 +1,8 @@
 # Code templates for experiments using HRL
 
+Repository containing templates to be used with [HRL](https://github.com/computational-psychology/hrl)
+
+
 ## MLCM experiment
 
 Run:  
@@ -9,6 +12,8 @@ python mlcm_experiment.py
 ```
 
 and use 'demo' as observer name
+
+
 
 ## Asymmetric matching experiment with an external matching field
 
