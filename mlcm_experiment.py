@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-MLCM experiment for perceived transmittance with varying physical color of the
-transparency and physical transmittance
+MLCM experiment for perceived transmittance with varying physical reflectance
+of the transparency (oarameter tau) and physical transmittance (parameter alpha)
 
+Uses HRL on python 2
 
 @author: GA Apr 2018
 """
 
-# Package Imports
+from helper_functions import image_to_array, read_design, read_design_csv, draw_text
 from hrl import HRL
 from hrl.graphics import graphics
-# Qualified Imports
+
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFont, ImageDraw
 import sys
 import time
-from PIL import Image, ImageFont, ImageDraw
 
 
 # flag to switch between running locally or running in the lab
@@ -31,68 +31,6 @@ HEIGHT=768
 whlf = WIDTH/2.0
 hhlf = HEIGHT/2.0
 
-
-def image_to_array(fname, in_format = 'png'):
-    # Function written by Marianne
-    """
-    read specified image file (default: png), converts it to grayscale and into numpy array
-    input:
-    ------
-    fname       - name of image file
-    in_format   - extension (png default)
-    output:
-    -------
-    numpy array
-    """
-    im = Image.open('%s.%s' %(fname, in_format)).convert('L')
-    temp_matrix  = [ im.getpixel(( y, x)) for x in range(im.size[1]) for y in range(im.size[0])]
-    temp_matrix  = np.array(temp_matrix).reshape(im.size[1], im.size[0])
-    im_matrix    = np.array(temp_matrix.shape,dtype=np.float64)
-    im_matrix    = temp_matrix/255.0
-    #print im_matrix
-    return im_matrix
-    
-    
-
-        
-def read_design(fname):
-    # function written by Marianne
-    
-    design = open(fname)
-    header = design.readline().strip('\n').split()
-    print header
-    data   = design.readlines()
-    
-    new_data = {}
-    
-    for k in header:
-        new_data[k] = []
-    for l in data:
-        curr_line = l.strip().split()
-        for j, k in enumerate(header):
-            new_data[k].append(curr_line[j])
-    return new_data
-
-
-def read_design_csv(fname):
-    
-    
-    design = open(fname)
-    header = design.readline().strip('\n').split(',')
-    #print header
-    data   = design.readlines()
-    
-    new_data = {}
-    
-    for k in header:
-        new_data[k] = []
-    for l in data:
-        curr_line = l.strip().split(',')
-        for j, k in enumerate(header):
-            new_data[k].append(curr_line[j])
-    return new_data
-    
-    
     
 def read_response(hrl):
     
@@ -106,8 +44,10 @@ def read_response(hrl):
             response = 0
         elif btn == 'Space':
             print 'space'
-        if hrl.inputs.checkEscape():
-            print 'Abort! Abort!'
+        elif btn == 'Escape':  
+        #if hrl.inputs.checkEscape():
+        #    response = None
+            print 'Escape pressed, exiting experiment!!'
             hrl.close()
             sys.exit(0)
 
@@ -115,7 +55,7 @@ def read_response(hrl):
 
 def get_last_trial(vp_id,sess):
     try:
-        rfl =open('results/%s/%s_block_%d.txt' %(vp_id, vp_id,  sess), 'r')
+        rfl =open('results/%s/mlcm/%s_block_%d.txt' %(vp_id, vp_id,  sess), 'r')
     except IOError:
         print 'result file not found'
         return 0
@@ -133,22 +73,6 @@ def get_last_trial(vp_id,sess):
         
     return last_trl
     
-def draw_text(text, bg=0.27, text_color=0, fontsize=48):
-    # function from Thorsten
-    """ create a numpy array containing the string text as an image. """
-
-    bg *= 255
-    text_color *= 255
-    font = ImageFont.truetype(
-            "/usr/share/fonts/truetype/msttcorefonts/arial.ttf", fontsize,
-            encoding='unic')
-    text_width, text_height = font.getsize(text)
-    dims = (text_width, text_height)
-    im = Image.new('L', dims, int(bg))
-    draw = ImageDraw.Draw(im)
-    draw.text((0,0), text, fill=text_color, font=font)
-    return np.array(im) / 255.
-
 
 def show_continue(hrl, b, nb):
     # Function from Thorsten
@@ -349,29 +273,29 @@ if __name__ == '__main__':
     lut = 'lut.csv'     
    
     if inlab:
-		## create HRL object
-		hrl = HRL(graphics='datapixx',
-				  inputs='responsepixx',
-				  photometer=None,
-				  wdth=WIDTH,
-				  hght=HEIGHT,
-				  bg=0.27,
-				  scrn=1,
-				  lut=lut,
-				  db = False,
-				  fs=True)
+        ## create HRL object
+        hrl = HRL(graphics='datapixx',
+                  inputs='responsepixx',
+                  photometer=None,
+                  wdth=WIDTH,
+                  hght=HEIGHT,
+                  bg=0.27,
+                  scrn=1,
+                  lut=lut,
+                  db = False,
+                  fs=True)
 
     else: 
-		hrl = HRL(graphics='gpu',
-				  inputs='keyboard',
-				  photometer=None,
-				  wdth=WIDTH,
-				  hght=HEIGHT,
-				  bg=0.27,
-				  scrn=1,
-				  lut=lut,
-				  db = True,
-				  fs=False)
+        hrl = HRL(graphics='gpu',
+                  inputs='keyboard',
+                  photometer=None,
+                  wdth=WIDTH,
+                  hght=HEIGHT,
+                  bg=0.27,
+                  scrn=1,
+                  lut=lut,
+                  db = True,
+                  fs=False)
                   
     # #Iterate across all blocks that need to be presented
     for i in range(len(blockstorun['number'])):
