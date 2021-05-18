@@ -3,7 +3,7 @@
 Repository containing templates to be used with [HRL](https://github.com/computational-psychology/hrl)
 
 
-## MLCM experiment
+## MLCM experiment 
 
 Run:
 
@@ -17,7 +17,7 @@ and use 'demo' as observer name
 
 
 
-## MLCM experiment
+## MLDS experiment with the method of triads
 
 Run:
 
