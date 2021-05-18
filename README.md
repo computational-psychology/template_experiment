@@ -16,6 +16,20 @@ and use 'demo' as observer name
 <img src="screenshots/screenshot_mlcm.png" width="500"/>
 
 
+
+## MLCM experiment
+
+Run:
+
+```
+python mlds_experiment.py
+```
+
+and use 'demo' as observer name
+
+<img src="screenshots/screenshot_mlds.png" width="500"/>
+
+
 ## Asymmetric matching experiment with an external matching field
 
 Run:
