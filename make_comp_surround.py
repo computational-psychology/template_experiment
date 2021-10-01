@@ -271,6 +271,12 @@ def make_life_matches(trl_nr):
     for center_int in np.arange(256):
         center = np.ones((center_size, center_size)) * center_int
         matches[center_int] = replace_image_part(surround, center, (pos, pos))
+
+    ## returns an extra image where the center target region has -1
+    ## in that way we can easily replace the values with the actual match value
+    center = np.ones((center_size, center_size)) * -1
+    matches[-1] = replace_image_part(surround, center, (pos, pos))
+    
     return matches, surround_values
 
 

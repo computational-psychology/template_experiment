@@ -6,9 +6,6 @@ Asymmetric matching experiment with external, variegatd matching field
 Uses HRL on python 2
 
 
-TODO: add timestamp and response time
-
-
 @authors: CW, GA.
 """
 
@@ -178,16 +175,16 @@ def show_match(hrl, match_lum, curr_match):
     # and adjust it to the matched luminace
 
     center = np.copy(curr_match)
-    center[center== 1.0] = match_lum
+    center[center <0] = match_lum    
     # create new texture
     center_display = hrl.graphics.newTexture(center)
     return(center_display)
 
 def match_stimulus(trl):
     trial_match, all_surround = make_life_matches(trl)
-    # return the one with a white center patch, so we can easily replace this area later on
+    # return the one with a -1 at the center patch, so we can easily replace this area later on
     #print all_surround
-    return trial_match[255], all_surround
+    return trial_match[-1], all_surround
 
 def get_last_trial(vp_id):
     try:
@@ -280,7 +277,8 @@ def run_trial(hrl,trl, start_trl, end_trl):
 
         curr_match = np.array(trial_match.shape, dtype=np.float64)
         curr_match = trial_match/255. 
-
+        #print curr_match[60]
+        
         # Show stimulus and match
         show_stimulus(hrl, checkerboard, curr_match, match_lum)      
   
