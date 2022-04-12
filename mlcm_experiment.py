@@ -18,9 +18,10 @@ from PIL import Image, ImageFont, ImageDraw
 import sys
 import time
 
+from socket import gethostname
 
 # flag to switch between running locally or running in the lab
-inlab = False
+inlab = True if "vlab" in gethostname() else False
 
 
 # size of Siements monitor
@@ -280,7 +281,7 @@ if __name__ == '__main__':
                   wdth=WIDTH,
                   hght=HEIGHT,
                   bg=0.27,
-                  scrn=1,
+                  scrn="0.1",
                   lut=lut,
                   db = False,
                   fs=True)

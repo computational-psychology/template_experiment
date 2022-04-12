@@ -18,9 +18,10 @@ from PIL import Image
 import sys
 import time
 from PIL import Image, ImageFont, ImageDraw
+from socket import gethostname
 
 # flag to switch between running locally or running in the lab
-inlab = False
+inlab = True if "vlab" in gethostname() else False
 
 # size of monitor
 WIDTH=1024
@@ -348,7 +349,7 @@ if __name__ == '__main__':
                   wdth=WIDTH,
                   hght=HEIGHT,
                   bg=0.27,
-                  scrn=1,
+                  scrn="0.1",
                   lut=lut,
                   db = False,
                   fs=True)
