@@ -60,7 +60,7 @@ def read_design(fname):
     
     design = open(fname)
     header = design.readline().strip('\n').split()
-    print header
+    print(header)
     data   = design.readlines()
     
     new_data = {}
@@ -105,9 +105,9 @@ def read_response(hrl):
         elif btn == 'Left':
             response = 0
         elif btn == 'Space':
-            print 'space'
+            print('space')
         if hrl.inputs.checkEscape():
-            print 'Abort! Abort!'
+            print('Abort! Abort!')
             hrl.close()
             sys.exit(0)
 
@@ -117,7 +117,7 @@ def get_last_trial(vp_id,sess):
     try:
         rfl =open('results/%s/mlds/%s_block_%d.txt' %(vp_id, vp_id,  sess), 'r')
     except IOError:
-        print 'result file not found'
+        print('result file not found')
         return 0
         
     for line in rfl:
@@ -237,7 +237,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     
     # function written by Torsten and edited by me
     # read out variable values for each trial from the designmatrix
-    print "TRIAL =", trl
+    print("TRIAL =", trl)
     
     #show break automatically, define after how many trials
     if (trl-start_trl)%120==0 and (trl-start_trl)!=0: 
@@ -283,7 +283,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     no_resp = True 
     while no_resp: # as long as no_resp TRUE
         response, btn, t1 = read_response(hrl)
-        print "btn =", btn   
+        print("btn =", btn)
         if btn != None:
                no_resp = False
     
@@ -308,7 +308,7 @@ if __name__ == '__main__':
     # log file name and location
     ## this is the design matrix which is loaded and the result matrix
     # Design and Result matrix files names
-    vp_id   = raw_input ('Please input the observer name (e.g. demo): ')
+    vp_id   = input ('Please input the observer name (e.g. demo): ')
     
     ## determines which blocks to run
     # reads block order
@@ -328,7 +328,7 @@ if __name__ == '__main__':
         
     # if all is done
     if len(blockstorun['number']) == 0:
-        print "All BLOCKS are DONE, exiting."
+        print("All BLOCKS are DONE, exiting.")
 
         
     # opens block file to write 
@@ -370,11 +370,11 @@ if __name__ == '__main__':
     # #Iterate across all blocks that need to be presented
     for i in range(len(blockstorun['number'])):
         
-        sess = np.int(blockstorun['number'][i])
-        print (sess)
+        sess = int(blockstorun['number'][i])
+        print(sess)
         bl = blockstorun['block'][i]
         
-        print "Block %d " % (sess)
+        print("Block %d " % sess)
         
         # sess    = np.int(raw_input ('Bitte geben Sie die Nummer des Blocks ein (z.B. 1): '))
         # med     = raw_input ('Bitte geben Sie die Bedingung ein (z.B. plain, transp.dark,transp.light): ')
@@ -416,7 +416,7 @@ if __name__ == '__main__':
         
         # continue?
         btn = show_continue(hrl, i+1, len(blockstorun['number']))
-        print "continue screen, pressed ", btn
+        print("continue screen, pressed ", btn)
         if btn == 'Left':
             break
         
@@ -426,7 +426,7 @@ if __name__ == '__main__':
    
     # finishes everything
     hrl.close()
-    print "Session exited" 
+    print("Session exited")
         
         
 # EOF

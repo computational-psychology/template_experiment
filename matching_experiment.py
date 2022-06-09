@@ -158,16 +158,16 @@ def adjust_loop(hrl, match_lum, checkerboard, curr_match):
                  match_lum = 0.0
             show_stimulus(hrl, checkerboard, curr_match, match_lum)
         elif btn == 'Space':
-            print 'space'
+            print('space')
             
         #if hrl.inputs.checkEscape():
         elif btn == 'Escape':    
-            print 'Escape pressed, exiting experiment!!'
+            print('Escape pressed, exiting experiment!!')
             hrl.close()
             sys.exit(0)
     
-    print "MatchLum =", match_lum
-    print "Button = ", btn
+    print("MatchLum =", match_lum)
+    print("Button = ", btn)
     
     return match_lum, btn
 
@@ -191,7 +191,7 @@ def get_last_trial(vp_id):
     try:
         rfl =open('results/%s/matching/%s.txt' %(vp_id, vp_id), 'r')
     except IOError:
-        print 'result file not found'
+        print('result file not found')
         return 0
         
     for line in rfl:
@@ -244,7 +244,7 @@ def show_break(hrl,trial, total_trials):
 def run_trial(hrl,trl, start_trl, end_trl):
     # function written by Torsten and edited by Christiane, reused by GA
     # read out variable values for each trial from the design matrix
-    print "TRIAL =", trl
+    print("TRIAL =", trl)
     
     #show break automatically, define after how many trials
     if (trl-start_trl)%50==0:
@@ -285,7 +285,7 @@ def run_trial(hrl,trl, start_trl, end_trl):
   
         # adjust the lumiance
         match_lum, btn = adjust_loop(hrl, match_lum, checkerboard, curr_match)
-        print "btn =", btn   
+        print("btn =", btn)
         if btn == 'Space':
                no_match = False
     
@@ -320,7 +320,7 @@ if __name__ == '__main__':
     
     LANG ='en' # 'de' or 'en'
     
-    vp_id   = raw_input ('Bitte geben Sie Ihre Initialen ein (z.B. demo): ')
+    vp_id   = input ('Bitte geben Sie Ihre Initialen ein (z.B. demo): ')
     
     # get last trial from results file, to be able to resume from that trial onwards
     start_trl = get_last_trial(vp_id)   
@@ -378,7 +378,7 @@ if __name__ == '__main__':
         
         
     hrl.close()
-    print "Session complete"
+    print("Session complete")
     rfl.close()
 
 

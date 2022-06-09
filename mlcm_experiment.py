@@ -44,11 +44,11 @@ def read_response(hrl):
         elif btn == 'Left':
             response = 0
         elif btn == 'Space':
-            print 'space'
+            print('space')
         elif btn == 'Escape':  
         #if hrl.inputs.checkEscape():
         #    response = None
-            print 'Escape pressed, exiting experiment!!'
+            print('Escape pressed, exiting experiment!!')
             hrl.close()
             sys.exit(0)
 
@@ -58,7 +58,7 @@ def get_last_trial(vp_id,sess):
     try:
         rfl =open('results/%s/mlcm/%s_block_%d.txt' %(vp_id, vp_id,  sess), 'r')
     except IOError:
-        print 'result file not found'
+        print('result file not found')
         return 0
         
     for line in rfl:
@@ -165,7 +165,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     time.sleep(0.25)
     
     # 
-    print "TRIAL =", trl
+    print("TRIAL =", trl)
     
     #show a break screen automatically after so many trials
     if (trl-start_trl)%80==0 and (trl-start_trl)!=0: 
@@ -178,10 +178,10 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     alpha1 = float(design['alpha1'][trl])
     alpha2 = float(design['alpha2'][trl])
     
-    print tau1
-    print alpha1
-    print tau2
-    print alpha2
+    print(tau1)
+    print(alpha1)
+    print(tau2)
+    print(alpha2)
     
     # stimuli
     trialname1 = '%d_a_%.2f_tau_%.2f' % (thistrial, alpha1, tau1)
@@ -214,7 +214,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     no_resp = True 
     while no_resp: # as long as no_resp TRUE
         response, btn, t1 = read_response(hrl)
-        print "btn =", btn   
+        print("btn =", btn)
         if btn != None:
                no_resp = False
     
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     
     # log file name and location
     ## this is the design matrix which is loaded
-    vp_id   = raw_input ('Please input the observer name (e.g. demo): ')
+    vp_id   = input ('Please input the observer name (e.g. demo): ')
     
     ## determines which blocks to run
     # reads block order
@@ -260,7 +260,7 @@ if __name__ == '__main__':
         
     # if all is done
     if len(blockstorun['number']) == 0:
-        print "All BLOCKS are DONE, exiting."
+        print("All BLOCKS are DONE, exiting.")
 
         
     # opens block file to write 
@@ -302,10 +302,10 @@ if __name__ == '__main__':
     for i in range(len(blockstorun['number'])):
         
         sess = np.int(blockstorun['number'][i])
-        print (sess)
+        print(sess)
         bl = blockstorun['block'][i]
         
-        print "Block %d " % (sess)
+        print("Block %d " % (sess))
         
         start_trl = get_last_trial(vp_id, sess)   
                 
@@ -340,7 +340,7 @@ if __name__ == '__main__':
         
         # continue?
         btn = show_continue(hrl, i+1, len(blockstorun['number']))
-        print "continue screen, pressed ", btn
+        print("continue screen, pressed ", btn)
         if btn == 'Left':
             break
         
@@ -350,7 +350,7 @@ if __name__ == '__main__':
    
     # finishes everything
     hrl.close()
-    print "Session exited" 
+    print("Session exited")
         
         
 # EOF
