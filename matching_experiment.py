@@ -3,7 +3,7 @@
 """
 Asymmetric matching experiment with external, variegatd matching field
 
-Uses HRL on python 2
+Uses HRL on python 3
 
 
 @authors: CW, GA.
@@ -113,7 +113,7 @@ def show_stimulus(hrl, checkerboard, curr_match, match_lum):
     hrl.graphics.flip(clr=False)   # clr= True to clear buffer
     
     # delete texture from buffer
-    graphics.deleteTextureDL(center_display._dlid)
+    #graphics.deleteTextureDL(center_display._dlid)
 
 
 def adjust_loop(hrl, match_lum, checkerboard, curr_match):
@@ -276,7 +276,7 @@ def run_trial(hrl,trl, start_trl, end_trl):
     t1 = time.time()
     while no_match: # as long as no_match TRUE
 
-        curr_match = np.array(trial_match.shape, dtype=np.float64)
+        #curr_match = np.array(trial_match.shape, dtype=np.float64)
         curr_match = trial_match/255. 
         #print curr_match[60]
         
@@ -353,7 +353,7 @@ if __name__ == '__main__':
                   wdth=WIDTH,
                   hght=HEIGHT,
                   bg=0.27,
-                  scrn="0.1",
+                  scrn=1,
                   lut=lut,
                   db = False,
                   fs=True)
