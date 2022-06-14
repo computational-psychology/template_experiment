@@ -349,7 +349,7 @@ if __name__ == '__main__':
                   wdth=WIDTH,
                   hght=HEIGHT,
                   bg=0.27,
-                  scrn="0.1",
+                  scrn=1,
                   lut=lut,
                   db = False,
                   fs=True)
