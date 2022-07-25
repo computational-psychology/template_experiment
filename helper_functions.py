@@ -46,7 +46,7 @@ def read_design(fname):
     """
     design = open(fname)
     header = design.readline().strip('\n').split()
-    print header
+    print(header)
     data   = design.readlines()
     
     new_data = {}

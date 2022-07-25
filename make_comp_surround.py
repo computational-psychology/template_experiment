@@ -28,7 +28,7 @@ def position_constraint(random_array):
             n_rep = n_rep + 1
         else:
             break
-    print n_rep
+    print(n_rep)
     return random_array
     
 def position_constraint2(ext_surround, dir_surround):
@@ -180,10 +180,10 @@ def replace_image_part(stimulus=None, replacement=None, position=None):
     inc_y, inc_x  = replacement.shape
     pos_y, pos_x  = position
     
-    x1 = pos_x - inc_x/2
-    x2 = pos_x + inc_x/2
-    y1 = pos_y - inc_y/2
-    y2 = pos_y + inc_y/2
+    x1 = int(pos_x - inc_x/2)
+    x2 = int(pos_x + inc_x/2)
+    y1 = int(pos_y - inc_y/2)
+    y2 = int(pos_y + inc_y/2)
     
     new_stimulus = stimulus.copy()
     
