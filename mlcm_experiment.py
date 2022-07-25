@@ -301,7 +301,7 @@ if __name__ == '__main__':
     # #Iterate across all blocks that need to be presented
     for i in range(len(blockstorun['number'])):
         
-        sess = np.int(blockstorun['number'][i])
+        sess = int(blockstorun['number'][i])
         print(sess)
         bl = blockstorun['block'][i]
         
