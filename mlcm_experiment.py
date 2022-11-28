@@ -26,13 +26,15 @@ if inlab_siemens:
     # size of Siements monitor
     WIDTH = 1024
     HEIGHT = 768
-    bg_blank = 0.1 # corresponding to 50 cd/m2 approx	
+    bg_blank = 0.1 # corresponding to 50 cd/m2 approx
+    middlegap = 0   
     
 elif inlab_viewpixx:
     # size of VPixx monitor
     WIDTH = 1920
     HEIGHT = 1080
     bg_blank = 0.27 # corresponding to 50 cd/m2 approx
+    middlegap = 150 # pixels
     
 else:
     WIDTH = 1920
@@ -111,18 +113,15 @@ def read_design_csv(fname):
 def read_response(hrl):
     
     btn = None
-    while btn == None or btn == 'Up' or btn == 'Down' :
+    while btn == None or btn == 'Up' or btn == 'Down' or  btn == 'Space':
         (btn,t1) = hrl.inputs.readButton()
         print(btn)
         if  btn == 'Right':
             response = 1
         elif btn == 'Left':
             response = 0
-        elif btn == 'Space':
-            print('space')
-        elif btn == 'Escape':  
-        #if hrl.inputs.checkEscape():
-        #    response = None
+        elif btn == 'Escape':
+            response = None
             print('Escape pressed, exiting experiment!!')
             hrl.close()
             sys.exit(0)
@@ -131,7 +130,7 @@ def read_response(hrl):
 
 def get_last_trial(vp_id,sess):
     try:
-        rfl =open('results/%s/mlcm/%s_block_%d.csv' %(vp_id, vp_id,  sess), 'r')
+        rfl =open('results/%s/mlcm/block_%d.csv' % (vp_id,  sess), 'r')
     except IOError:
         print('result file not found')
         return 0
@@ -293,8 +292,8 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     
     # Show stimlus 
     # draw the checkerboard s
-    checkerboard1.draw((0, hhlf - checkerboard1.hght/2))
-    checkerboard2.draw((whlf, hhlf - checkerboard1.hght/2))
+    checkerboard1.draw(((whlf - checkerboard1.wdth - middlegap/2), hhlf - checkerboard1.hght/2))
+    checkerboard2.draw((whlf + middlegap/2, hhlf - checkerboard1.hght/2))
          
     # flip everything
     hrl.graphics.flip(clr=False)   # clr= True to clear buffer
@@ -305,7 +304,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
         response, btn, t1 = read_response(hrl)
         print("btn =", btn)
         if btn != None:
-               no_resp = False
+            no_resp = False
     
     line = ','.join([str(block), str(trl), str(alpha1), str(alpha2), str(tau1), 
                     str(tau2), str(response), str(t1), str(time.time())])
@@ -337,11 +336,11 @@ if __name__ == '__main__':
     
     ## determines which blocks to run
     # reads block order
-    blockorder = read_design('design/%s/mlcm/experiment_order.txt' % vp_id)
+    blockorder = read_design_csv('design/%s/mlcm/experiment_order.csv' % vp_id)
     
     # reads the blocks already done
     try:
-        blocksdone = read_design('results/%s/mlcm/blocks_done.txt' % vp_id)
+        blocksdone = read_design_csv('results/%s/mlcm/blocks_done.csv' % vp_id)
         
         # determine which blocks are left to run
         next = len(blocksdone['number'])
@@ -357,10 +356,10 @@ if __name__ == '__main__':
 
         
     # opens block file to write 
-    bfl = open('results/%s/mlcm/blocks_done.txt'% vp_id,'a')
+    bfl = open('results/%s/mlcm/blocks_done.csv'% vp_id,'a')
     if blocksdone == None:
         block_headers = ['number', 'block']
-        bfl.write('\t'.join(block_headers)+'\n')
+        bfl.write(','.join(block_headers)+'\n')
         bfl.flush()
         
   
@@ -423,7 +422,7 @@ if __name__ == '__main__':
         
         # log file name and location
         design = read_design_csv('design/%s/mlcm/block_%d.csv' %(vp_id, sess))
-        rfl    = open('results/%s/mlcm/%s_block_%d.csv' %(vp_id, vp_id, sess), 'a')
+        rfl    = open('results/%s/mlcm/block_%d.csv' % (vp_id, sess), 'a')
         
         #  get end trial
         end_trl   = len(design['Trial'])
@@ -446,15 +445,16 @@ if __name__ == '__main__':
         
         # save the block just done
         if trl==(end_trl-1):
-            bfl.write('%d\t%s\n' %(sess, bl))
+            bfl.write('%d,%s\n' %(sess, bl))
             bfl.flush()
         
-        
+
         # continue?
-        btn = show_continue(hrl, i+1, len(blockstorun['number']))
-        print("continue screen, pressed ", btn)
-        if btn == 'Left':
-            break
+        if i < len(blockstorun['number']) - 1 :
+            btn = show_continue(hrl, i+1, len(blockstorun['number']))
+            print("continue screen, pressed ", btn)
+            if btn == 'Left':
+                break
         
         
     # close block done file
