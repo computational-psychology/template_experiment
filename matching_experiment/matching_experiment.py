@@ -30,21 +30,18 @@ if inlab_siemens:
     # size of Siements monitor
     WIDTH = 1024
     HEIGHT = 768
-    bg_blank = 0.1 # corresponding to 50 cd/m2 approx
-    middlegap = 0   
+    bg_blank = 0.1 # corresponding to 50 cd/m2 approx 
     
 elif inlab_viewpixx:
     # size of VPixx monitor
     WIDTH = 1920
     HEIGHT = 1080
     bg_blank = 0.27 # corresponding to 50 cd/m2 approx
-    middlegap = 150 # pixels
     
 else:
     WIDTH = 1024
     HEIGHT = 768
     bg_blank = 0.27
-    middlegap = 150 # pixels
    
 # center of screen
 whlf = WIDTH / 2.0
