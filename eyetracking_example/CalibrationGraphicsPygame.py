@@ -1,4 +1,4 @@
-#
+### Official version from SR Research adapted by GA to work with HRL
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS
 # IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 # TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -20,7 +20,9 @@
 # specific prior written permission.
 #
 # Last updated on 3/18/2021
-
+from PIL import Image
+import numpy as np
+                
 import pygame
 from pygame.locals import *
 from math import pi
@@ -40,7 +42,7 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
         global DISABLE_AUDIO
         pylink.EyeLinkCustomDisplay.__init__(self)
 
-        self._disp = win  # screen to use for calibration
+        self._disp = win  # HRL graphics
         self._tracker = tracker  # connection to the tracker
 
         self._version = '2021.3.16'
@@ -48,8 +50,8 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
 
         pygame.mouse.set_visible(False)  # hide mouse cursor
 
-        self._bgColor = (128, 128, 128)  # target color (foreground)
-        self._fgColor = (0, 0, 0)  # target color (background)
+        self._bgColor = 0.2  # target color (foreground)
+        self._fgColor = 0    # target color (background)
         self._targetSize = 32  # diameter of the target
         self._targetType = 'circle'  # could be 'circle' or 'picture'
         self._pictureTarget = None  # picture target
@@ -82,7 +84,8 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
 
         # we will use this for text messages
         self._fnt = pygame.font.SysFont('Arial', 26)
-        self._w, self._h = self._disp.get_size()
+        self._w, self._h = self._disp.screen.get_size()
+        print('screen size', self._w, self._h)
         self._cam_region = pygame.Rect((0, 0), (0, 0))
 
         # cache the camera title
@@ -139,6 +142,9 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
         """ set the movie file to use as the calibration target """
 
         self._pictureTarget = picture_target
+        # HRL
+        cal_pic = np.array(Image.open(picture_target).convert('L'))/255.0
+        self._cal_texture = self._disp.newTexture(cal_pic)
 
     def setCalibrationSounds(self, target_beep, done_beep, error_beep):
         """ Provide three wav files as the warning beeps
@@ -187,9 +193,12 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
         pass
 
     def clear_cal_display(self):
-        self._disp.fill(self._bgColor)
-        pygame.display.flip()
-        self._disp.fill(self._bgColor)
+        #self._disp.fill(self._bgColor)
+        #pygame.display.flip()
+        #self._disp.fill(self._bgColor)
+        #self._disp.changeBackground(self._bgColor)
+        self._disp.flip(clr=True) # HRL clears screen
+        
 
     def erase_cal_target(self):
         self.clear_cal_display()
@@ -198,24 +207,23 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
         """  draw the calibration target, i.e., a bull's eye""" 
 
         if self._targetType == 'picture':
-            if self._pictureTarget is None:
-                print('ERROR: Provide a picture as the calibration target')
-                pygame.quit()
-                sys.exit()
-            elif not os.path.exists(self._pictureTarget):
-                print('ERROR: Picture %s not found' % self._pictureTarget)
-                pygame.quit()
-                sys.exit()
-            else:
-                cal_pic = pygame.image.load(self._pictureTarget)
-                w, h = cal_pic.get_size()
-                self._disp.blit(cal_pic, (x - int(w/2.0), y - int(h/2.0)))
+                #cal_pic = pygame.image.load(self._pictureTarget)
+                #w, h = cal_pic.get_size()
+                #self._disp.blit(cal_pic, (x - int(w/2.0), y - int(h/2.0)))
+                self._cal_texture.draw(( x - int(self._cal_texture.wdth/2), y - int(self._cal_texture.hght/2)))
+                #self._disp.flip(clr=False) # do not flip with HRL.
+                
         else:
-            pygame.draw.circle(self._disp, self._fgColor, (x, y),
+            # TODO: adapt to HRL
+            pygame.draw.circle(self._disp.screen, 
+                               (int(self._fgColor*255), int(self._fgColor*255), int(self._fgColor*255)),
+                               (x, y),
                                int(self._targetSize / 2.))
-            pygame.draw.circle(self._disp, self._bgColor, (x, y),
+            pygame.draw.circle(self._disp.screen, 
+                               (int(self._bgColor*255),int(self._bgColor*255),int(self._bgColor*255)),
+                               (x, y),
                                int(self._targetSize / 4.))
-        pygame.display.flip()
+        self._disp.flip(clr=False)
 
     def play_beep(self, beepid):
         """ play warning beeps if being requested""" 
@@ -391,7 +399,7 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
                             rec_x = int((self._w - 192*2) / 2.0)
                             rec_y = int((self._h - 160*2) / 2.0)
                             rct = pygame.Rect((rec_x, rec_y, 192*2, 160*2))
-                            pygame.draw.rect(self._disp, self._fgColor, rct, 2)
+                            pygame.draw.rect(self._disp.screen, self._fgColor, rct, 2)
                             # show some message
                             msg = 'Simulating gaze with the mouse'
                             msg_w, msg_h = self._fnt.size(msg)
@@ -399,8 +407,8 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
 
                             txt_x = int((self._w - msg_w)/2.0)
                             txt_y = int((self._h - msg_h)/2.0)
-                            self._disp.blit(t_surf, (txt_x, txt_y))
-                            pygame.display.flip()
+                            self._disp.screen.blit(t_surf, (txt_x, txt_y))
+                            self._disp.flip(clr=False)
                 elif keycode == K_SPACE:
                     keycode = ord(' ')
                 elif keycode == K_ESCAPE:
@@ -481,7 +489,7 @@ class CalibrationGraphics(pylink.EyeLinkCustomDisplay):
                 surf.fill(self._bgColor)
                 surf.blit(self._resizedImg, cam_img_pos)
                 surf.blit(txt_surf, txt_pos)
-                pygame.display.flip()
+                self._disp.flip(clr=False)
             except:
                 pass
 

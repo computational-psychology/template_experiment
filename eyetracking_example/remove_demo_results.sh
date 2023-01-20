@@ -1,4 +1,4 @@
 #!/bin/bash
 
-rm results/demo/*.csv
+rm -Rf results/demo/*
 
