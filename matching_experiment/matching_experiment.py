@@ -356,9 +356,7 @@ if __name__ == '__main__':
         result_headers = ['trial','context', 'image.fname', 'r', 'start_idx', 'match_lum', 'resp.time', 'timestamp']
         rfl.write('\t'.join(result_headers)+'\n')
  
-    # Pass this to HRL if we want to use gamma correction.
-    lut = 'lut.csv'   
-    
+   
     # We create the HRL object with parameters that depend on the setup we are using    
     if inlab_siemens:
         # create HRL object
