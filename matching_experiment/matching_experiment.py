@@ -23,18 +23,32 @@ import random, sys, os, time
 
 from socket import gethostname
 
-# flag to switch between running locally or running in the lab
-inlab = True if "vlab" in gethostname() else False
+inlab_siemens = True if "vlab" in gethostname() else False
+inlab_viewpixx =  True if "viewpixx" in gethostname() else False
 
-
-# size of Siements monitor
-WIDTH=1024
-HEIGHT=768
-
-
+if inlab_siemens:
+    # size of Siements monitor
+    WIDTH = 1024
+    HEIGHT = 768
+    bg_blank = 0.1 # corresponding to 50 cd/m2 approx
+    middlegap = 0   
+    
+elif inlab_viewpixx:
+    # size of VPixx monitor
+    WIDTH = 1920
+    HEIGHT = 1080
+    bg_blank = 0.27 # corresponding to 50 cd/m2 approx
+    middlegap = 150 # pixels
+    
+else:
+    WIDTH = 1024
+    HEIGHT = 768
+    bg_blank = 0.27
+    middlegap = 150 # pixels
+   
 # center of screen
-whlf = WIDTH/2.0
-hhlf = HEIGHT/2.0
+whlf = WIDTH / 2.0
+hhlf = HEIGHT / 2.0
 
 
 # small and big steps during adjustment 
@@ -189,7 +203,7 @@ def match_stimulus(trl):
 
 def get_last_trial(vp_id):
     try:
-        rfl =open('results/%s/matching/%s.txt' %(vp_id, vp_id), 'r')
+        rfl =open('results/%s/%s.txt' %(vp_id, vp_id), 'r')
     except IOError:
         print('result file not found')
         return 0
@@ -255,7 +269,7 @@ def run_trial(hrl,trl, start_trl, end_trl):
     
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
     trialname = '%d_%s_%.2f' % (Trial, context, r)
-    stim_name = 'stimuli/%s/matching/%s' % (vp_id , trialname)
+    stim_name = 'stimuli/%s/%s' % (vp_id , trialname)
     
     #print "r =", r
     
@@ -326,16 +340,16 @@ if __name__ == '__main__':
     start_trl = get_last_trial(vp_id)   
     
     # read design file and open result file for saving 
-    design = read_design_csv('design/%s/matching/%s_matching.csv' %(vp_id, vp_id))
+    design = read_design_csv('design/%s/%s.csv' %(vp_id, vp_id))
     
     #  get last trial (total number of trials)
     end_trl   = len(design['Trial'])
     
     # results file
-    rfl    = open('results/%s/matching/%s.txt' %(vp_id, vp_id), 'a')
+    rfl    = open('results/%s/%s.txt' %(vp_id, vp_id), 'a')
 
     # file to save surround of match check
-    fid_all_match = open('results/%s/matching/%s_all_match_surr.txt' %(vp_id, vp_id), 'a')
+    fid_all_match = open('results/%s/%s_all_match_surr.txt' %(vp_id, vp_id), 'a')
 
     if start_trl == 0:
         #fid_match.write('b2\tc2\td2\td3\td4\tc4\tb4\tb3\n')
@@ -345,30 +359,50 @@ if __name__ == '__main__':
     # Pass this to HRL if we want to use gamma correction.
     lut = 'lut.csv'   
     
-    if inlab:
-        ## create HRL object
-        hrl = HRL(graphics='datapixx',
-                  inputs='responsepixx',
-                  photometer=None,
-                  wdth=WIDTH,
-                  hght=HEIGHT,
-                  bg=0.27,
-                  scrn=1,
-                  lut=lut,
-                  db = False,
-                  fs=True)
-
-    else: 
-        hrl = HRL(graphics='gpu',
-                  inputs='keyboard',
-                  photometer=None,
-                  wdth=WIDTH,
-                  hght=HEIGHT,
-                  bg=0.27,
-                  scrn=1,
-                  lut=lut,
-                  db = True,
-                  fs=False)
+    # We create the HRL object with parameters that depend on the setup we are using    
+    if inlab_siemens:
+        # create HRL object
+        hrl = HRL(
+            graphics="datapixx",
+            inputs="responsepixx",
+            photometer=None,
+            wdth=WIDTH,
+            hght=HEIGHT,
+            bg=bg_blank,
+            scrn=1,
+            lut='lut.csv',
+            db=True,
+            fs=True,
+        )
+    elif inlab_viewpixx:
+        
+        hrl = HRL(
+            graphics="viewpixx",
+            inputs="responsepixx",
+            photometer=None,
+            wdth=WIDTH,
+            hght=HEIGHT,
+            bg=bg_blank,
+            scrn=1,
+            lut='lut_viewpixx.csv',
+            db=True,
+            fs=True,
+        )
+        
+    else:
+        hrl = HRL(
+            graphics="gpu",
+            inputs="keyboard",
+            photometer=None,
+            wdth=WIDTH,
+            hght=HEIGHT,
+            bg=bg_blank,
+            scrn=0,
+            lut=None,
+            db=True,
+            fs=False,
+        )
+        
                     
     
     # loop over trials in design file

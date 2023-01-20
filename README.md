@@ -3,7 +3,7 @@
 Repository containing templates to be used with [HRL](https://github.com/computational-psychology/hrl)
 
 
-## MLCM experiment 
+## MLCM experiment - *new file organization - only use this for the moment*
 
 Run:
 
