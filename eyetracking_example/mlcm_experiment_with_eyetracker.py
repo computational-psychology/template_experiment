@@ -59,6 +59,8 @@ else:
 whlf = WIDTH / 2.0
 hhlf = HEIGHT / 2.0
 
+# 2 seconds stimulus time
+stim_time = 2000 # in miliseconds
 
 
 def image_to_array(fname, in_format = 'png'):
@@ -422,6 +424,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
         # present the picture for a maximum of stim_time seconds
         if pygame.time.get_ticks() - onset_time >= stim_time:
             el_tracker.sendMessage('time_out')
+            response = None 
             print('time out')
             break
             
@@ -432,7 +435,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
             abort_trial()
             return error
 
-        (btn,t1) = hrl.inputs.readButton()
+        (btn,t1) = hrl.inputs.readButton(to=0.005) # polls every 5 ms
         
         if  btn == 'Right':
             response = 1
@@ -566,7 +569,7 @@ def abort_trial():
 
 ###########################################################################  
 
-def prepare_eyetracker_for_recording_block(edf_fname):
+def prepare_eyetracker_for_recording_block(edf_fname, firstblock=False):
     """
     Preparing the Eyetracker for a new recording. A new EDF file is setup
     and open, and all parameters are passed to the Eyetracker.
@@ -651,45 +654,47 @@ def prepare_eyetracker_for_recording_block(edf_fname):
     el_tracker.sendMessage(dv_coords)
 
     # Configure a graphics environment (genv) for tracker calibration
-    genv = CalibrationGraphics(el_tracker, hrl.graphics)
+    # only if we are starting 
+    if firstblock:
+        genv = CalibrationGraphics(el_tracker, hrl.graphics)
 
 
-    # Set background and foreground colors
-    # parameters: foreground_color, background_color
-    foreground_color = 0.0
-    background_color = bg_blank
-    genv.setCalibrationColors(foreground_color, background_color)
+        # Set background and foreground colors
+        # parameters: foreground_color, background_color
+        foreground_color = 0.0
+        background_color = bg_blank
+        genv.setCalibrationColors(foreground_color, background_color)
 
-    # Set up the calibration target
-    #
-    # The target could be a "circle" (default) or a "picture",
-    # To configure the type of calibration target, set
-    # genv.setTargetType to "circle", "picture", e.g.,
-    # genv.setTargetType('picture')
-    #
-    # Use gen.setPictureTarget() to set a "picture" target, e.g.,
-    # genv.setPictureTarget(os.path.join('images', 'fixTarget.bmp'))
+        # Set up the calibration target
+        #
+        # The target could be a "circle" (default) or a "picture",
+        # To configure the type of calibration target, set
+        # genv.setTargetType to "circle", "picture", e.g.,
+        # genv.setTargetType('picture')
+        #
+        # Use gen.setPictureTarget() to set a "picture" target, e.g.,
+        # genv.setPictureTarget(os.path.join('images', 'fixTarget.bmp'))
 
-    # Use a picture as the calibration target
-    genv.setTargetType('picture')
-    genv.setPictureTarget('fixTarget.bmp')
+        # Use a picture as the calibration target
+        genv.setTargetType('picture')
+        genv.setPictureTarget('fixTarget.bmp')
 
-    # Configure the size of the calibration target (in pixels)
-    # genv.setTargetSize(24)
+        # Configure the size of the calibration target (in pixels)
+        # genv.setTargetSize(24)
 
-    # Beeps to play during calibration, validation and drift correction
-    # parameters: target, good, error
-    #     target -- sound to play when target moves
-    #     good -- sound to play on successful operation
-    #     error -- sound to play on failure or interruption
-    # Each parameter could be ''--default sound, 'off'--no sound, or a wav file
-    # e.g., genv.setCalibrationSounds('type.wav', 'qbeep.wav', 'error.wav')
-    genv.setCalibrationSounds('', '', '')
+        # Beeps to play during calibration, validation and drift correction
+        # parameters: target, good, error
+        #     target -- sound to play when target moves
+        #     good -- sound to play on successful operation
+        #     error -- sound to play on failure or interruption
+        # Each parameter could be ''--default sound, 'off'--no sound, or a wav file
+        # e.g., genv.setCalibrationSounds('type.wav', 'qbeep.wav', 'error.wav')
+        genv.setCalibrationSounds('', '', '')
 
-    # Request Pylink to use the Pygame window we opened above for calibration
-    pylink.openGraphicsEx(genv)
+        # Request Pylink to use the Pygame window we opened above for calibration
+        pylink.openGraphicsEx(genv)
     
-    return genv
+    return edf_file
     
     
     
@@ -847,8 +852,9 @@ if __name__ == '__main__':
         if not os.path.exists(session_folder):
             os.makedirs(session_folder)
             
-
-        genv = prepare_eyetracker_for_recording_block(edf_fname)
+        firstblock = True if i==0 else False
+        
+        edf_file = prepare_eyetracker_for_recording_block(edf_fname, firstblock=firstblock)
         
         ########## Go into calibration mode before every block  #################   
         # skip this step if running the script in Dummy Mode
