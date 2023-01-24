@@ -19,6 +19,7 @@ from CalibrationGraphicsPygame import CalibrationGraphics
 # Package Imports
 from hrl import HRL
 from hrl.graphics import graphics
+import OpenGL.GL as gl
 import pygame
 
 import numpy as np
@@ -320,13 +321,11 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     #
     # Use the code commented below to convert the image and send the backdrop
     #
-    # TODO USE BACKDROP IN OUR CASE WITH HRL
     #pixels = [[img.get_at((i, j))[0:3] for i in range(scn_width)]
     #         for j in range(scn_height)]
     #el_tracker.bitmapBackdrop(scn_width, scn_height, pixels,
     #                         0, 0, scn_width, scn_height,
     #                         0, 0, pylink.BX_MAXCONTRAST)
-
     
     # send a "TRIALID" message to mark the start of a trial, see Data
     # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
@@ -417,26 +416,52 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     #                                                    int(scn_height))
     #el_tracker.sendMessage(imgload_msg)
 
-    # send interest area messages to record in the EDF data file
-    # here we draw a rectangular IA, for illustration purposes
-    # format: !V IAREA RECTANGLE <id> <left> <top> <right> <bottom> [label]
-    # for all supported interest area commands, see the Data Viewer Manual,
-    # "Protocol for EyeLink Data to Viewer Integration"
-    #ia_pars = (1, left, top, right, bottom, 'screen_center')
-    #el_tracker.sendMessage('!V IAREA RECTANGLE %d %d %d %d %d %s' % ia_pars)
-
     # loop for waiting a response
-    response, btn, t1 = read_response(hrl, to=2) # timeout of 2 seconds
-    print("btn =", btn)
-    if btn == 'Space' or btn=='Escape':
-        abort_trial()
-    elif btn!='Left' and btn!='Right':
-        el_tracker.sendMessage('time_out')
+    btn = None
+    while btn == None or btn == 'Left' or btn == 'Right' or  btn == 'Space':
+        # present the picture for a maximum of stim_time seconds
+        if pygame.time.get_ticks() - onset_time >= stim_time:
+            el_tracker.sendMessage('time_out')
+            print('time out')
+            break
+            
+        # abort the current trial if the tracker is no longer recording
+        error = el_tracker.isRecording()
+        if error is not pylink.TRIAL_OK:
+            el_tracker.sendMessage('tracker_disconnected')
+            abort_trial()
+            return error
 
+        (btn,t1) = hrl.inputs.readButton()
+        
+        if  btn == 'Right':
+            response = 1
+            print("btn =", btn)
+            # send over a message to log the key press
+            el_tracker.sendMessage('key_pressed')
+            
+        elif btn == 'Left':
+            response = 0
+            print("btn =", btn)
+            # send over a message to log the key press
+            el_tracker.sendMessage('key_pressed')
+            
+        elif btn == 'Escape':
+            response = None
+            el_tracker.sendMessage('trial_skipped_by_user')
+            print('Escape pressed, exiting experiment!!')
+            el_tracker.sendMessage('terminated_by_user')
+            terminate_task()
+            return pylink.ABORT_EXPT
+            
+            #hrl.close()
+            #sys.exit(0)
+            
     # clear screen
     hrl.graphics.flip(clr=True)
     
-    #
+    # finishing trial successfully after a button press
+    ########################################################################
     el_tracker.sendMessage('blank_screen')
     # send a message to clear the Data Viewer screen as well
     el_tracker.sendMessage('!V CLEAR 128 128 128')
@@ -454,6 +479,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     # send a 'TRIAL_RESULT' message to mark the end of trial, see Data
     # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
     el_tracker.sendMessage('TRIAL_RESULT %d' % pylink.TRIAL_OK)
+    #######################################################################
 
     # saving button presses results
     line = ','.join([str(block), str(trl), str(alpha1), str(alpha2), str(tau1),
@@ -501,8 +527,7 @@ def terminate_task():
         el_tracker.closeDataFile()
 
         # Show a file transfer message on the screen
-        msg = 'EDF data is transferring from EyeLink Host PC...'
-        print(msg)
+        print('EDF data is transferring from EyeLink Host PC...')
 
         # Download the EDF data file from the Host PC to a local data folder
         # parameters: source_file_on_the_host, destination_file_on_local_drive
@@ -541,88 +566,17 @@ def abort_trial():
 
 ###########################################################################  
 
-
-
-### Run Main ###
-if __name__ == '__main__':
-
-    LANG ='en' # 'de' or 'en'
-
-    # log file name and location
-    ## this is the design matrix which is loaded
-    vp_id   = input ('Please input the observer name (e.g. demo): ')
-
-    ## determines which blocks to run
-    # reads block order
-    blockorder = read_design_csv('design/%s/experiment_order.csv' % vp_id)
-
-    # check if results folder exist, if not, creates
-    results_folder = 'results'
-    if not os.path.exists(results_folder):
-        os.makedirs(results_folder)
-
-    results_folder = 'results/%s' % vp_id
-    if not os.path.exists(results_folder):
-        os.makedirs(results_folder)
-
-    # reads the blocks already done
-    try:
-        blocksdone = read_design_csv('results/%s/blocks_done.csv' % vp_id)
-
-        # determine which blocks are left to run
-        next = len(blocksdone['number'])
-        blockstorun = {'number': blockorder['number'][next:], 'block': blockorder['block'][next:]}
-
-    except IOError:
-        blocksdone  = None
-        blockstorun = blockorder  # all blocks to run
-
-    # if all is done
-    if len(blockstorun['number']) == 0:
-        print("All BLOCKS are DONE, exiting.")
-
-
-    # opens block file to write
-    bfl = open('results/%s/blocks_done.csv'% vp_id,'a')
-    if blocksdone == None:
-        block_headers = ['number', 'block']
-        bfl.write(','.join(block_headers)+'\n')
-        bfl.flush()
-
-    ###########################################################################
-    # TODO: For the eyetracker we need to set a EDF filename, length no more than 8 characthers
-    # and no special characthers
-    edf_fname = '%s01' % vp_id # CHANGE THIS because it will override
-
-    # check if the filename is valid (length <= 8 & no special char)
-    allowed_char = ascii_letters + digits + '_'
-    if not all([c in allowed_char for c in edf_fname]):
-        raise(RuntimeError, 'ERROR: Invalid EDF filename')
-    elif len(edf_fname) > 8:
-        raise(RuntimeError, 'ERROR: EDF filename should not exceed 8 characters')
-
-    # We download EDF data file from the EyeLink Host PC to the local hard
-    # drive at the end of each testing session, here we rename the EDF to
-    # include session start date/time
-    time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
-    session_identifier = edf_fname + time_str
+def prepare_eyetracker_for_recording_block(edf_fname):
+    """
+    Preparing the Eyetracker for a new recording. A new EDF file is setup
+    and open, and all parameters are passed to the Eyetracker.
+    Every block is a new file, so we call this function before every block.
     
-    # create a folder for the current testing session in the "results" folder
-    session_folder = os.path.join(results_folder, session_identifier)
-    if not os.path.exists(session_folder):
-        os.makedirs(session_folder)
+    Code adapted from picture.py example included in official SR Research 
+    documentation
     
-    # Step 1: Connect to the EyeLink Host PC
-    if dummy_mode:
-        el_tracker = pylink.EyeLink(None)
-    else:
-        try:
-            el_tracker = pylink.EyeLink("100.1.1.1")
-        except RuntimeError as error:
-            print('ERROR:', error)
-            sys.exit()
-
-
+    """
+    
     # Step 2: Open an EDF data file on the Host PC
     edf_file = edf_fname + ".EDF"
     print('Eyetracking data being saved in file %s', edf_file)
@@ -644,7 +598,7 @@ if __name__ == '__main__':
     preamble_text = 'RECORDED BY %s' % os.path.basename(__file__)
     el_tracker.sendCommand("add_file_preamble_text '%s'" % preamble_text)
 
-    # Step 3: Configure the tracker
+    #### Configuring the eye tracker
     #
     # Put the tracker in offline mode before we change tracking parameters
     el_tracker.setOfflineMode()
@@ -658,11 +612,13 @@ if __name__ == '__main__':
         # print out some version info in the shell
         print('Running experiment on %s, version %d' % (vstr, eyelink_ver))
 
+
     # File and Link data control
     # what eye events to save in the EDF file, include everything by default
     file_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT'
     # what eye events to make available over the link, include everything by default
     link_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,BUTTON,FIXUPDATE,INPUT'
+    
     # what sample data to save in the EDF data file and to make available
     # over the link, include the 'HTARGET' flag to save head target sticker
     # data for supported eye trackers
@@ -679,61 +635,10 @@ if __name__ == '__main__':
 
     # Optional tracking parameters
     # Sample rate, 250, 500, 1000, or 2000, check your tracker specification
-    # if eyelink_ver > 2:
-    #     el_tracker.sendCommand("sample_rate 1000")
+    el_tracker.sendCommand("sample_rate 1000")
     # Choose a calibration type, H3, HV3, HV5, HV13 (HV = horizontal/vertical),
     el_tracker.sendCommand("calibration_type = HV9")
-    # Set a gamepad button to accept calibration/drift check target
-    # You need a supported gamepad/button box that is connected to the Host PC
-    el_tracker.sendCommand("button_function 5 'accept_target_fixation'")
-    ###########################################################################
-
-
-    # We create the HRL object with parameters that depend on the setup we are using
-    if inlab_siemens:
-        # create HRL object
-        hrl = HRL(
-            graphics="datapixx",
-            inputs="responsepixx",
-            photometer=None,
-            wdth=WIDTH,
-            hght=HEIGHT,
-            bg=bg_blank,
-            scrn=1,
-            lut='lut.csv',
-            db=True,
-            fs=True,
-        )
-    elif inlab_viewpixx:
-
-        hrl = HRL(
-            graphics="viewpixx",
-            inputs="responsepixx",
-            photometer=None,
-            wdth=WIDTH,
-            hght=HEIGHT,
-            bg=bg_blank,
-            scrn=1,
-            lut='lut_viewpixx.csv',
-            db=True,
-            fs=True,
-        )
-
-    else:
-        hrl = HRL(
-            graphics="gpu",
-            inputs="keyboard",
-            photometer=None,
-            wdth=WIDTH,
-            hght=HEIGHT,
-            bg=bg_blank,
-            scrn=0,
-            lut=None,
-            db=True,
-            fs=False,
-        )
-
-    ###########################################################################
+    
     # Pass the display pixel coordinates (left, top, right, bottom) to the tracker
     # see the EyeLink Installation Guide, "Customizing Screen Settings"
     el_coords = "screen_pixel_coords = 0 0 %d %d" % (WIDTH - 1, HEIGHT - 1)
@@ -783,28 +688,117 @@ if __name__ == '__main__':
 
     # Request Pylink to use the Pygame window we opened above for calibration
     pylink.openGraphicsEx(genv)
+    
+    return genv
+    
+    
+    
+
+### Run Main ###
+if __name__ == '__main__':
+
+    LANG ='en' # 'de' or 'en'
+
+    # log file name and location
+    ## this is the design matrix which is loaded
+    vp_id   = input ('Please input the observer name (e.g. demo): ')
+
+    ## determines which blocks to run
+    # reads block order
+    blockorder = read_design_csv('design/%s/experiment_order.csv' % vp_id)
+
+    # check if results folder exist, if not, creates
+    results_folder = 'results'
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
+
+    results_folder = 'results/%s' % vp_id
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
+
+    # reads the blocks already done
+    try:
+        blocksdone = read_design_csv('results/%s/blocks_done.csv' % vp_id)
+
+        # determine which blocks are left to run
+        next = len(blocksdone['number'])
+        blockstorun = {'number': blockorder['number'][next:], 'block': blockorder['block'][next:]}
+
+    except IOError:
+        blocksdone  = None
+        blockstorun = blockorder  # all blocks to run
+
+    # if all is done
+    if len(blockstorun['number']) == 0:
+        print("All BLOCKS are DONE, exiting.")
+
+
+    # opens block file to write
+    bfl = open('results/%s/blocks_done.csv'% vp_id,'a')
+    if blocksdone == None:
+        block_headers = ['number', 'block']
+        bfl.write(','.join(block_headers)+'\n')
+        bfl.flush()
+
+    ###########################################################################
+    #### Connect to the EyeLink Host PC
+    if dummy_mode:
+        el_tracker = pylink.EyeLink(None)
+    else:
+        try:
+            el_tracker = pylink.EyeLink("100.1.1.1")
+        except RuntimeError as error:
+            print('ERROR:', error)
+            sys.exit()    
+    ###########################################################################
+
+    # We create the HRL object with parameters that depend on the setup we are using
+    if inlab_siemens:
+        # create HRL object
+        hrl = HRL(
+            graphics="datapixx",
+            inputs="responsepixx",
+            photometer=None,
+            wdth=WIDTH,
+            hght=HEIGHT,
+            bg=bg_blank,
+            scrn=1,
+            lut='lut.csv',
+            db=True,
+            fs=True,
+        )
+    elif inlab_viewpixx:
+
+        hrl = HRL(
+            graphics="viewpixx",
+            inputs="responsepixx",
+            photometer=None,
+            wdth=WIDTH,
+            hght=HEIGHT,
+            bg=bg_blank,
+            scrn=1,
+            lut='lut_viewpixx.csv',
+            db=True,
+            fs=True,
+        )
+
+    else:
+        hrl = HRL(
+            graphics="gpu",
+            inputs="keyboard",
+            photometer=None,
+            wdth=WIDTH,
+            hght=HEIGHT,
+            bg=bg_blank,
+            scrn=0,
+            lut=None,
+            db=True,
+            fs=False,
+        )
 
     ###########################################################################   
     # #Iterate across all blocks that need to be presented
     for i in range(len(blockstorun['number'])):
-
-        ########################################################################### 
-        #### SET UP NEW EDF FOR EVERY BLOCK
-        
-        
-        
-
-
-        ########## Go into calibration mode before every block  #################   
-        # skip this step if running the script in Dummy Mode
-        if not dummy_mode:
-            try:
-                el_tracker.doTrackerSetup()
-            except RuntimeError as err:
-                print('ERROR:', err)
-                el_tracker.exitCalibration()
-
-        ###########################################################################    
 
         sess = int(blockstorun['number'][i])
         print(sess)
@@ -828,8 +822,45 @@ if __name__ == '__main__':
             rfl.write(','.join(result_headers)+'\n')
 
 
-        # loop over one block
-        # ================
+        ########################################################################### 
+        #### SET UP NEW EDF file FOR EVERY BLOCK
+        # For the eyetracker we need to set a EDF filename, length no more than 8 characthers
+        # and no special characthers
+        edf_fname = '%s%d' % (vp_id, sess)
+        
+        
+        # check if the filename is valid (length <= 8 & no special char)
+        allowed_char = ascii_letters + digits + '_'
+        if not all([c in allowed_char for c in edf_fname]):
+            raise(RuntimeError, 'ERROR: Invalid EDF filename')
+        elif len(edf_fname) > 8:
+            raise(RuntimeError, 'ERROR: EDF filename should not exceed 8 characters')
+
+        # We download EDF data file from the EyeLink Host PC to the local hard
+        # drive at the end of each testing session, here we rename the EDF to
+        # include session start date/time
+        time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
+        session_identifier = edf_fname + time_str
+        
+        # create a folder for the current testing session in the "results" folder
+        session_folder = os.path.join(results_folder, session_identifier)
+        if not os.path.exists(session_folder):
+            os.makedirs(session_folder)
+            
+
+        genv = prepare_eyetracker_for_recording_block(edf_fname)
+        
+        ########## Go into calibration mode before every block  #################   
+        # skip this step if running the script in Dummy Mode
+        if not dummy_mode:
+            try:
+                el_tracker.doTrackerSetup()
+            except RuntimeError as err:
+                print('ERROR:', err)
+                el_tracker.exitCalibration()
+
+        ###########################################################################    
+        # loop over trials in one block
         for trl in np.arange(start_trl, end_trl):
             run_trial(hrl, trl, sess,  start_trl, end_trl) # function that executes the experiment
 
@@ -839,7 +870,6 @@ if __name__ == '__main__':
         # Step 7: disconnect, download the EDF file, then terminate the task
         terminate_task()
     
-
         # save the block just done
         if trl==(end_trl-1):
             bfl.write('%d,%s\n' %(sess, bl))
