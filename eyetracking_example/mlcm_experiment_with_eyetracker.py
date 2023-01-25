@@ -32,7 +32,7 @@ inlab_siemens = True if "vlab" in gethostname() else False
 inlab_viewpixx =  True if "viewpixx" in gethostname() else False
 
 ### Eyetracker
-dummy_mode = False # True or False. Dummy mode=True is to debug the code without using eyetracker
+dummy_mode = True # True or False. Dummy mode=True is to debug the code without using eyetracker
 #######
 
 if inlab_siemens:
@@ -40,27 +40,24 @@ if inlab_siemens:
     WIDTH = 1024
     HEIGHT = 768
     bg_blank = 0.1 # corresponding to 50 cd/m2 approx
-    middlegap = 0
 
 elif inlab_viewpixx:
     # size of VPixx monitor
     WIDTH = 1920
     HEIGHT = 1080
-    bg_blank = 0.1 # corresponding to 50 cd/m2 approx
-    middlegap = 150 # pixels
+    bg_blank = 0.271 # corresponding to 50 cd/m2 approx
 
 else:
     WIDTH = 1920
     HEIGHT = 1080
-    bg_blank = 0.27
-    middlegap = 150 # pixels
+    bg_blank = 0.271
 
 # center of screen
 whlf = WIDTH / 2.0
 hhlf = HEIGHT / 2.0
 
 # 2 seconds stimulus time
-stim_time = 2000 # in miliseconds
+stim_time = 5000 # in miliseconds
 
 
 def image_to_array(fname, in_format = 'png'):
@@ -124,25 +121,6 @@ def read_design_csv(fname):
             new_data[k].append(curr_line[j])
     return new_data
 
-
-
-def read_response(hrl, to):
-
-    btn = None
-    while btn == None or btn == 'Up' or btn == 'Down' or  btn == 'Space':
-        (btn,t1) = hrl.inputs.readButton(to=to)
-        print(btn)
-        if  btn == 'Right':
-            response = 1
-        elif btn == 'Left':
-            response = 0
-        elif btn == 'Escape':
-            response = None
-            print('Escape pressed, exiting experiment!!')
-            hrl.close()
-            sys.exit(0)
-
-    return response, btn, t1
 
 def get_last_trial(vp_id,sess):
     try:
@@ -276,21 +254,14 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     print(alpha2)
 
     # stimuli
-    trialname1 = '%d_a_%.2f_tau_%.2f' % (thistrial, alpha1, tau1)
-    stim_name1 = 'stimuli/%s/block_%d_%s_cropped' % (vp_id, block, trialname1)
-
-    trialname2 = '%d_a_%.2f_tau_%.2f' % (thistrial, alpha2, tau2)
-    stim_name2 = 'stimuli/%s/block_%d_%s_cropped' % (vp_id, block, trialname2)
-
-
+    stim_name = 'stimuli/%s/block_%d_%d' % (vp_id, block, thistrial)
+    
     # Preloading images before we start eyetracking recording
     # load stimlus image and convert from png to numpy array
-    curr_image1 = image_to_array(stim_name1)
-    curr_image2 = image_to_array(stim_name2)
-
+    curr_image = image_to_array(stim_name)
+    
     # texture creation in buffer : stimulus
-    checkerboard1 = hrl.graphics.newTexture(curr_image1)
-    checkerboard2 = hrl.graphics.newTexture(curr_image2)
+    checkerboard = hrl.graphics.newTexture(curr_image)
     
         
     ###################################################################
@@ -391,8 +362,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
 
     # Show stimulus
     # draw the checkerboard s
-    checkerboard1.draw(((whlf - checkerboard1.wdth - middlegap/2), hhlf - checkerboard1.hght/2))
-    checkerboard2.draw((whlf + middlegap/2, hhlf - checkerboard1.hght/2))
+    checkerboard.draw((0,0))
 
     # flip everything
     hrl.graphics.flip(clr=False)   # clr= True to clear buffer
@@ -420,6 +390,8 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
 
     # loop for waiting a response
     btn = None
+    response = None
+    
     while btn == None or btn == 'Left' or btn == 'Right' or  btn == 'Space':
         # present the picture for a maximum of stim_time seconds
         if pygame.time.get_ticks() - onset_time >= stim_time:
@@ -440,17 +412,20 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
         if  btn == 'Right':
             response = 1
             print("btn =", btn)
+            t1 = pygame.time.get_ticks() - onset_time
             # send over a message to log the key press
             el_tracker.sendMessage('key_pressed')
+            break
             
         elif btn == 'Left':
             response = 0
             print("btn =", btn)
+            t1 = pygame.time.get_ticks() - onset_time
             # send over a message to log the key press
             el_tracker.sendMessage('key_pressed')
+            break
             
         elif btn == 'Escape':
-            response = None
             el_tracker.sendMessage('trial_skipped_by_user')
             print('Escape pressed, exiting experiment!!')
             el_tracker.sendMessage('terminated_by_user')
@@ -477,6 +452,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
     el_tracker.sendMessage('!V TRIAL_VAR block %s' % sess)
     el_tracker.sendMessage('!V TRIAL_VAR trial %s' % trl)
+    el_tracker.sendMessage('!V TRIAL_VAR response %s' % response)
     el_tracker.sendMessage('!V TRIAL_VAR RT %d' % t1)
 
     # send a 'TRIAL_RESULT' message to mark the end of trial, see Data
@@ -495,8 +471,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     # clean checkerboard texture from buffer
     # (needed! Specially if hundreds of trials are presented, if not
     # cleared they accummulate in buffer)
-    graphics.deleteTextureDL(checkerboard1._dlid)
-    graphics.deleteTextureDL(checkerboard2._dlid)
+    graphics.deleteTextureDL(checkerboard._dlid)
 
 
     return response
@@ -654,7 +629,7 @@ def prepare_eyetracker_for_recording_block(edf_fname, firstblock=False):
     el_tracker.sendMessage(dv_coords)
 
     # Configure a graphics environment (genv) for tracker calibration
-    # only if we are starting 
+    # only if we are in the first block. 
     if firstblock:
         genv = CalibrationGraphics(el_tracker, hrl.graphics)
 
