@@ -66,7 +66,7 @@ for f in files:
         im.paste(im2, (int(whlf + middlegap/2), int(hhlf - im2.height/2)))    
         
         # saving image 
-        im.save('stimuli/%s/block_%d_%d.png' % (obs, block, thistrial))
+        im.convert('RGB').save('stimuli/%s/block_%d_%d.png' % (obs, block, thistrial))
 
     
 # EOF  

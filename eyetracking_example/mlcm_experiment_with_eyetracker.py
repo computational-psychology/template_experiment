@@ -32,7 +32,7 @@ inlab_siemens = True if "vlab" in gethostname() else False
 inlab_viewpixx =  True if "viewpixx" in gethostname() else False
 
 ### Eyetracker
-dummy_mode = True # True or False. Dummy mode=True is to debug the code without using eyetracker
+dummy_mode = False # True or False. Dummy mode=True is to debug the code without using eyetracker
 #######
 
 if inlab_siemens:
@@ -126,7 +126,7 @@ def get_last_trial(vp_id,sess):
     try:
         rfl =open('results/%s/block_%d.csv' % (vp_id,  sess), 'r')
     except IOError:
-        print('result file not found')
+        print('result file not found, starting at trial 0')
         return 0
 
     for line in rfl:
@@ -278,7 +278,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     # function, if you do not need to scale the image on the Host
     # parameters: image_file, crop_x, crop_y, crop_width, crop_height,
     #             x, y on the Host, drawing options
-    el_tracker.imageBackdrop('%s.png' % curr_image,
+    el_tracker.imageBackdrop('%s.png' % stim_name,
                              0, 0, WIDTH, HEIGHT, 0, 0,
                              pylink.BX_MAXCONTRAST)
 
@@ -358,7 +358,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     hrl.graphics.flip(clr=True)
 
     # sleeps for 250 ms
-    time.sleep(0.25)
+    #time.sleep(0.25)
 
     # Show stimulus
     # draw the checkerboard s
@@ -407,7 +407,7 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
             abort_trial()
             return error
 
-        (btn,t1) = hrl.inputs.readButton(to=0.005) # polls every 5 ms
+        (btn,t1) = hrl.inputs.readButton(to=1) # polls every 50 ms
         
         if  btn == 'Right':
             response = 1
@@ -509,7 +509,7 @@ def terminate_task():
 
         # Download the EDF data file from the Host PC to a local data folder
         # parameters: source_file_on_the_host, destination_file_on_local_drive
-        local_edf = os.path.join(session_folder, session_identifier + '.EDF')
+        local_edf = os.path.join(session_folder, edf_file)
         try:
             el_tracker.receiveDataFile(edf_file, local_edf)
         except RuntimeError as error:
@@ -557,7 +557,7 @@ def prepare_eyetracker_for_recording_block(edf_fname, firstblock=False):
     
     # Step 2: Open an EDF data file on the Host PC
     edf_file = edf_fname + ".EDF"
-    print('Eyetracking data being saved in file %s', edf_file)
+    print('Eyetracking data being saved in file: ', edf_file)
     
     try:
         el_tracker.openDataFile(edf_file)
@@ -806,7 +806,7 @@ if __name__ == '__main__':
         #### SET UP NEW EDF file FOR EVERY BLOCK
         # For the eyetracker we need to set a EDF filename, length no more than 8 characthers
         # and no special characthers
-        edf_fname = '%s%d' % (vp_id, sess)
+        edf_fname = '%s%.2d' % (vp_id, sess)
         
         
         # check if the filename is valid (length <= 8 & no special char)
@@ -819,11 +819,10 @@ if __name__ == '__main__':
         # We download EDF data file from the EyeLink Host PC to the local hard
         # drive at the end of each testing session, here we rename the EDF to
         # include session start date/time
-        time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
-        session_identifier = edf_fname + time_str
+        session_identifier = time.strftime("%Y_%m_%d_%H_%M", time.localtime())
         
         # create a folder for the current testing session in the "results" folder
-        session_folder = os.path.join(results_folder, session_identifier)
+        session_folder = os.path.join(results_folder, 'EDF')
         if not os.path.exists(session_folder):
             os.makedirs(session_folder)
             
@@ -843,7 +842,9 @@ if __name__ == '__main__':
         ###########################################################################    
         # loop over trials in one block
         for trl in np.arange(start_trl, end_trl):
-            run_trial(hrl, trl, sess,  start_trl, end_trl) # function that executes the experiment
+            ret = run_trial(hrl, trl, sess,  start_trl, end_trl) # function that executes the experiment
+            if not (ret == 0 or ret==1):
+                break
 
         # close result file for this block
         rfl.close()
@@ -859,8 +860,8 @@ if __name__ == '__main__':
 
         # continue?
         if i < len(blockstorun['number']) - 1 :
+            print("continue with next block?")
             btn = show_continue(hrl, i+1, len(blockstorun['number']))
-            print("continue screen, pressed ", btn)
             if btn == 'Left':
                 break
 
