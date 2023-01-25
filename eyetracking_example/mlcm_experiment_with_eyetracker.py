@@ -278,9 +278,9 @@ def run_trial(hrl,trl, block,start_trl, end_trl):
     # function, if you do not need to scale the image on the Host
     # parameters: image_file, crop_x, crop_y, crop_width, crop_height,
     #             x, y on the Host, drawing options
-    ##    el_tracker.imageBackdrop(os.path.join('images', pic),
-    ##                             0, 0, scn_width, scn_height, 0, 0,
-    ##                             pylink.BX_MAXCONTRAST)
+    el_tracker.imageBackdrop('%s.png' % curr_image,
+                             0, 0, WIDTH, HEIGHT, 0, 0,
+                             pylink.BX_MAXCONTRAST)
 
     # If you need to scale the backdrop image on the Host, use the old Pylink
     # bitmapBackdrop(), which requires an additional step of converting the
