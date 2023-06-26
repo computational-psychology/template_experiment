@@ -12,6 +12,7 @@ CENTER = (SHAPE[0] // 2, SHAPE[1] // 2)  # Center of the drawing window
 ihrl = HRL(
     graphics="gpu",  # Use the default GPU as graphics device driver
     # graphics='datapixx',    # In the lab, we use the datapixx device driver
+    lut="lut.csv",  # filepath to (color) LookUp Table, mapping input intensity (0.0,1.0) to monitor intensities
     inputs="keyboard",  # Use the keyboard as input device driver
     # inputs="responsepixx",  # In the lab, we use the responsepixx input device
     hght=SHAPE[0],

@@ -59,26 +59,98 @@ This takes some arguments, such as:
 - `wdth`,`hght`: the resolution (width and height) of the window to draw
 - `fs`: whether to fullscreen the window
 - `scrn`: index of which screen (monitor) to use in a multimonitor setup
-- `graphics`: which graphics device to use -- "gpu", or "datapixx" in the lab
-- `inputs`: which input device to use -- "keyboard", or "responsepixx" in the lab
+- `inputs`: which input device to use
+- `graphics`: which graphics device to use
+- `lut`: (filepath to) LookUp Table mapping input intensity (0.0,1.0) to monitor intensities
 
 ```python
 from hrl import HRL
 
-# Define window parameters
-SHAPE = (1024, 1024)  # Desired shape of the drawing window
-
 # Create HRL interface object
 ihrl = HRL(
     graphics="gpu",  # Use the default GPU as graphics device driver
-    # graphics='datapixx',    # In the lab, we use the datapixx device driver
+    # graphics='datapixx',    # In the lab, we use the datapixx or viewpixx device driver
+    lut="lut.csv",  # filepath to (color) LookUp Table, mapping input intensity (0.0,1.0) to monitor intensities
     inputs="keyboard",  # Use the keyboard as input device driver
     # inputs="responsepixx",  # In the lab, we use the responsepixx input device
-    hght=SHAPE[0],
-    wdth=SHAPE[1],
+    hght=768,
+    wdth=1024,
     scrn=0,  # Which screen (monitor) to use
     fs=False,  # Fullscreen?
 )
+```
+
+### (color) LookUp Table
+In vision research, we (often) want to be sure about exactly what light the monitor is putting out.
+To know this, we take careful measurements and _calibrate_ our display devices.
+Specifically, we measure the _luminance_ (in $cdm^{-2}$) of the light coming from the monitor,
+as a function of the intensity value (float between `0.0` and `1.0`;
+which corresponds to the RGB value `int` between `0` and `255`).
+
+However, for most display devices, this relationship is not _linear_:
+a step in intensity from `0.0` to `.25` leads to a much smaller increase in luminance,
+than an equal step in intensity from `.75` to `1.0`!
+The exact shape of this relationship is known as the _gamma_ of the device,
+is different between different monitors, and can change over time as well.
+
+To correct for the gamma, we _calibrate_ the device:
+measure the whole gamma function in 256 steps,
+and figure out what the steps _should be_ to get a linear relationship
+between input intensity value (between `0.0` and `1.0`) and output luminance (in $cdm^{-2}$).
+This _gamma-corrected_ function is stored in a (Color) LookUp Table ([C]LUT),
+which maps an input intensity value `x` (i.e., the values in the stimulus)
+to the monitor intensity value that corresponds to `\frac{x}{256}` of the monitor max luminance:
+
+| IntensityIn |  IntensityOut | Luminance ($cdm^{-2}$) |
+| ----------- | ------------- | ---------------------- |
+| 0.0         | 0.0           | 0.0034                 |
+| 0.00024     | 0.05490       | 0.1334                 |
+| 0.00049     | 0.07058       | 0.2820                 |
+ ...
+| 0.98485     | 0.99607       | 498.88                 |
+| 0.99413     | 1.0           | 501.90                 |
+
+HRL can automatically use the LUT to convert intensities,
+such that we only have to think about input intensities linear spaced between `0.0` and `1.0`.
+Since the LUT is different for different setups
+we need to provide (a filepath to) the specific LUT when instantiating the HRL-object
+using `lut=` argument.
+In the lab setups, the specific `lut`s can be found in the `~/luts/` directory
+in subdirectories with YYYYMMDD datestamps (e.g., 20230626 for June 26th 2023) --
+be sure to use the most recent LUT!
+
+### Different setups
+The exact values passed for the parameters depends on which physical hardware setup is used.
+On a personal setup, laptop, etc, we use:
+```
+graphics="gpu", # default graphics driver
+inputs="keyboard", # default keyboard
+#lut, # no measured LUT anyway
+scrn=0, # default main (virtual)screen
+fs=False # easier to manage
+```
+and whatever resolution (`hght, wdth`) you want.
+
+In the lab, we have two setups.
+The ViewPixx setup (with eyetracker):
+```
+graphics="viewpixx",
+inputs="responsepixx",
+lut="lut_viewpixx.csv", # get the latest from ~/luts/ on that machine
+scrn=1,
+fs=True,
+hght=1080,
+wdth=1920,
+```
+The high-luminance range Siemens monitor:
+```
+graphics="datapixx",
+inputs="responsepixx",
+lut="lut.csv", # get the latest from ~/luts/ on that machine
+scrn=1,
+fs=True,
+hght=1024,
+wdth=768,
 ```
 
 ## 1. Define stimulus
