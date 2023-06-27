@@ -23,7 +23,13 @@ For that, we as the experiment will have to write our own code
 
 ```mermaid
 graph LR;
-    setup --> define --> display --> capture --> process --> cleanup
+    setup --> define --> display 
+    display --> capture --> process --> cleanup
+
+    subgraph HRL
+        display[display stimulus]
+        capture[capture participant response]
+    end
 
     subgraph experiment.py
         setup
@@ -31,11 +37,6 @@ graph LR;
 
         process[process - do something - with response]
         cleanup
-    end
-
-    subgraph HRL
-        display[display stimulus]
-        capture[capture participant response]
     end
 ```
 
