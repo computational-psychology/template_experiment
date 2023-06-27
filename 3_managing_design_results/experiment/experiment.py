@@ -3,6 +3,7 @@ import sys
 import data_management
 import design
 import pandas as pd
+import text_displays
 from hrl import HRL
 from stimuli import sbc, whites
 
@@ -69,20 +70,23 @@ def run_trial(ihrl, stim, intensity_target, intensity_left, intensity_right, **k
     return {"response": response, "result": result}
 
 
+# ------------------------------------- #
+#           MAIN EXPERIMENT LOOP        #
+# ------------------------------------- #
 def run_block(hrl, block, block_id):
     print(f"Running block {block_id}")
-    #  Get start, end trial
-    # start_trl = block["trial"].iloc[0]
-    # end_trl = block["trial"].iloc[-1] + 1
+    # Get start, end trial
+    start_trl = block["trial"].iloc[0]
+    end_trl = block["trial"].iloc[-1] + 1
 
     # loop over trials
     for idx, trial in block.iterrows():
         trial_id = trial["trial"]
         print(f"TRIAL {trial_id}")
 
-        # # show a break screen automatically after so many trials
-        # if (end_trl - trial_id) % (end_trl / 2) == 0 and (trial_id - start_trl) != 0:
-        #     show_break(hrl, trial_id, (start_trl + (end_trl - start_trl)))
+        # show a break screen automatically after so many trials
+        if (end_trl - trial_id) % (end_trl / 2) == 0 and (trial_id - start_trl) != 0:
+            text_displays.block_break(ihrl, trial_id, (start_trl + (end_trl - start_trl)))
 
         # current trial design variables (convert from pandas row to dict)
         trial = trial.to_dict()
@@ -118,9 +122,10 @@ def experiment_main(ihrl):
         # Iterate over all blocks that need to be presented
         for block_num, (block_id, block) in enumerate(incomplete_blocks.items()):
             # Run block
-            # block = block["block_id"]
             print(f"Running session block {block_num+1}: {block_id}")
             block = run_block(ihrl, block=block, block_id=block_id)
+
+            text_displays.block_end(ihrl, block_num + 1, len(incomplete_blocks))
     except SystemExit as e:
         # Cleanup
         print("Exiting...")
