@@ -3,19 +3,25 @@ from copy import deepcopy
 import numpy as np
 import stimupy
 
+target_size = 1
+
+visual_size = np.array((5, 10)) * target_size
+
 resolution = {
-    "visual_size": (10, 20),
+    "visual_size": visual_size,
     "ppd": 32,
 }
 
-target_size = resolution["visual_size"][1] / 10
-
 intensity_background = 0.3
 
+
+# Initialize empty dict to hold all stims
 stims = {}
 
 
-# %% Bullseye
+# -------------------------- #
+# %%      BULLSEYE           #
+# -------------------------- #
 # Low freq
 radii = np.array([0.5, 1.5, 2.5]) * target_size
 left = stimupy.stimuli.rings.rectangular_generalized(
@@ -58,7 +64,9 @@ frame_mask = np.where(bullseye_hfe["grating_mask"] == 7, 1, frame_mask)
 frame_mask = np.where(bullseye_hfe["target_mask"], 1, frame_mask)
 
 
-# %% SBC
+# -------------------------- #
+# %%         SBC             #
+# -------------------------- #
 stims["sbc"] = stimupy.stimuli.sbcs.two_sided(**resolution, target_size=target_size)
 
 # separated
@@ -72,7 +80,9 @@ sbc_smallest["img"] = np.where(frame_mask, sbc_smallest["img"], intensity_backgr
 stims["sbc, smallest"] = sbc_smallest
 
 
-# %% White's
+# -------------------------- #
+# %%       WHITE'S           #
+# -------------------------- #
 whites = {
     "whites, high freq": stimupy.stimuli.whites.white(
         **resolution,
@@ -97,7 +107,7 @@ whites = {
     ),
     "whites, narrow": stimupy.stimuli.whites.white(
         ppd=resolution["ppd"],
-        visual_size=(6, resolution["visual_size"][1]),
+        visual_size=(3 * target_size, resolution["visual_size"][1]),
         bar_width=target_size,
         target_indices=(2, -3),
         target_heights=target_size,
@@ -115,13 +125,15 @@ whites["whites, separate"]["img"] = np.where(
 
 stims = {**stims, **whites}
 
-# %% Strip
+# -------------------------- #
+# %%        STRIP            #
+# -------------------------- #
 stims["strip"] = stimupy.stimuli.whites.white(
     ppd=resolution["ppd"],
     visual_size=(target_size, resolution["visual_size"][1]),
     bar_width=target_size,
     target_indices=(2, 7),
-    target_heights=2,
+    target_heights=target_size,
     intensity_bars=(1, 0),
 )
 stims["strip"] = stimupy.utils.pad_dict_to_visual_size(
@@ -129,7 +141,9 @@ stims["strip"] = stimupy.utils.pad_dict_to_visual_size(
 )
 
 
-# %% Checkerboards
+# -------------------------- #
+# %%    CHECKERBOARDS        #
+# -------------------------- #
 checkerboards = {
     "checkerboard": stimupy.stimuli.checkerboards.checkerboard(
         **resolution,
@@ -139,7 +153,7 @@ checkerboards = {
     ),
     "checkerboard, narrow": stimupy.stimuli.checkerboards.checkerboard(
         ppd=resolution["ppd"],
-        visual_size=(6, resolution["visual_size"][1]),
+        visual_size=(3 * target_size, resolution["visual_size"][1]),
         check_visual_size=target_size,
         target_indices=((1, 2), (1, 7)),
     ),
