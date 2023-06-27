@@ -38,31 +38,64 @@ def display_stim(ihrl, stim_image):
 # ------------------------------------- #
 #    3&4. CAPTURE & PROCESS RESPONSE    #
 # ------------------------------------- #
-def select_stim(ihrl, stim_idx, max_idx):
-    """
-    We'll use the Left/Right keys to go through the list of stimuli,
-    and the Escape/Space keys to terminate.
+"""
+We'll use the Left/Right keys to go through the list of stimuli,
+and the Escape/Space keys to terminate.
 
-    Here we define a function that captures and processes responses.
-    On Escape/Space, it raises a SystemExit exception to terminate.
-    On Left/Right, it decreases/increases (resp.) the index
-    into the list of stimuli by 1.
-    To prevent IndexErrors, make sure that the index cannot be <0 or >max
+Here we define a function that captures and processes responses.
+On Escape/Space, it raises a SystemExit exception to terminate.
+On Left/Right, it decreases/increases (resp.) the index
+into the list of stimuli by 1.
+To prevent IndexErrors, make sure that the index cannot be <0 or >max
+"""
+
+
+def select(ihrl, value, range):
+    """Allow participant to select a value from a range of options
+
+    Parameters
+    ----------
+    ihrl : hrl-object
+        HRL-interface object to use for display
+    value : int
+        currently selected option
+    range : (int, int)
+        min and max values to select. If one value is given, assume min=0
+
+    Returns
+    -------
+    int
+        currently selected option
+    bool
+        whether this option was confirmed
+
+    Raises
+    ------
+    SystemExit
+        if participant/experimenter terminated by pressing Escape
     """
+    try:
+        len(range)
+    except:
+        range = (0, range)
+
+    accept = False
 
     press, _ = ihrl.inputs.readButton(btns=("Left", "Right", "Escape", "Space"))
 
-    if press in ("Escape", "Space"):
+    if press == "Escape":
         # Raise SystemExit Exception
         sys.exit("Participant terminated experiment.")
     elif press == "Left":
-        stim_idx -= 1
-        stim_idx = max(stim_idx, 0)
+        value -= 1
+        value = max(value, range[0])
     elif press == "Right":
-        stim_idx += 1
-        stim_idx = min(stim_idx, max_idx)
+        value += 1
+        value = min(value, range[1])
+    elif press == "Space":
+        accept = True
 
-    return stim_idx
+    return value, accept
 
 
 # ------------------------------------- #
@@ -92,7 +125,7 @@ def experiment_main(ihrl):
             display_stim(ihrl, stim_image)
 
             # Select next stim
-            stim_idx = select_stim(ihrl, stim_idx, max_idx=len(stim_names) - 1)
+            stim_idx, _ = select(ihrl, value=stim_idx, range=len(stim_names) - 1)
         except SystemExit as e:
             # Cleanup
             print("Exiting...")
