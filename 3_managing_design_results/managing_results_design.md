@@ -21,8 +21,8 @@ graph LR;
     generate_design <--> generate_block
 
     run_block --> run_trial --> define --> display --> capture --> save_trial
-    save_trial --> run_trial
-    save_trial --> exit
+    save_trial --> run_block
+    run_block --> exit
 
     subgraph HRL
         display
@@ -38,20 +38,21 @@ graph LR;
         save_trial
     end
 
-    subgraph design.py
-        generate_design
-        generate_block
-    end
-
     subgraph stimuli.py
         define[define stimuli]
     end
 
-    subgraph experiment.py
+    subgraph design.py
+        generate_design
+        generate_block
+
+        run_trial
+    end
+
+    subgraph run_experiment.py
         setup
 
         run_block
-        run_trial
 
         exit[cleanup & exit]
     end
@@ -63,8 +64,10 @@ This demo uses [pandas](https://pandas.pydata.org/) to manage data:
 pip install pandas
 ```
 
-Additionally, it requires having [HRL](https://github.com/computational-psychology/hrl) installed:
+Additionally, it requires having [HRL](https://github.com/computational-psychology/hrl)
+and [Pillow (PIL)](https://pillow.readthedocs.io/en/stable/) installed:
 ```bash
+pip install Pillow
 pip install https://github.com/computational-psychology/hrl/archive/master.zip
 ```
 

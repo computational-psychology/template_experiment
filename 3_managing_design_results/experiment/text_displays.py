@@ -199,7 +199,7 @@ def block_end(ihrl, block, total_blocks):
             " ",
             f"You have completed {block} out of {total_blocks} blocks.",
             " ",
-            "To continue, press the rechte button,",
+            "To continue, press the right button,",
             "to finish, press the left or middle button.",
         ]
     else:
