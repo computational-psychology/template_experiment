@@ -240,20 +240,6 @@ def image_to_array(fname, in_format="png"):
     return im_matrix
 
 
-def flip_surround(A, cnt):
-    if cnt == 1:
-        surround_values = np.fliplr(A)
-    if cnt == 2:
-        surround_values = np.flipud(A)
-    if cnt == 3:
-        surround_values2 = np.flipud(A)
-        surround_values = np.fliplr(surround_values2)
-    if cnt == 4:
-        surround_values = A
-
-    return surround_values
-
-
 def make_life_matches(trl_nr):
     center_size = 50
     resolution = 24
@@ -262,10 +248,10 @@ def make_life_matches(trl_nr):
     surround_values = np.fromtxt("matchsurround.txt")
 
     # Permutate: flip surround, possibly multiple directions
-    cnt_idx = np.array((1, 2, 3, 4))
-    random.shuffle(cnt_idx)
-    cnt = cnt_idx[0]
-    surround_values = flip_surround(surround_values, cnt)
+    if random.choice((True, False)):
+        surround_values = np.fliplr(surround_values)
+    if random.choice((True, False)):
+        surround_values = np.flipud(surround_values)
 
     # Resize to full resolution
     surround = resize_array(surround_values, (resolution, resolution))
