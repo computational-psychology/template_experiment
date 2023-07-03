@@ -73,40 +73,40 @@ hhlf = HEIGHT / 2.0
 STEP_SIZES = (0.02, 0.002)
 
 
-def show_stimulus(hrl, stimulus_img, matching_field_img, match_intensity):
+def show_stimulus(ihrl, stimulus_img, matching_field_img, match_intensity):
     # draw the checkerboard
     stimulus_img.draw((whlf - stimulus_img.wdth / 2, hhlf - stimulus_img.hght / 2))
 
     # create matching field with adjusted luminance
-    matching_display = show_match(hrl, match_intensity, matching_field_img)
+    matching_display = show_match(ihrl, match_intensity, matching_field_img)
     matching_display.draw((whlf - matching_display.wdth / 2, hhlf / 4 - 50))
 
     # flip everything
-    hrl.graphics.flip(clr=False)  # clr= True to clear buffer
+    ihrl.graphics.flip(clr=False)  # clr= True to clear buffer
 
     # delete texture from buffer
     # graphics.deleteTextureDL(center_display._dlid)
 
 
-def show_match(hrl, match_intensity, matching_field_img):
+def show_match(ihrl, match_intensity, matching_field_img):
     # replace the center patch on top of the match_display
     # and adjust it to the matched luminace
 
     center = np.copy(matching_field_img)
     center[center < 0] = match_intensity
     # create new texture
-    center_display = hrl.graphics.newTexture(center)
+    center_display = ihrl.graphics.newTexture(center)
     return center_display
 
 
-def adjust_loop(hrl, match_intensity, stimulus_img, matching_field_img):
+def adjust_loop(ihrl, match_intensity, stimulus_img, matching_field_img):
     accept = False
     while not accept:
         match_intensity, accept = adjustment.adjust(
-            ihrl=hrl, value=match_intensity, step_size=STEP_SIZES
+            ihrl=ihrl, value=match_intensity, step_size=STEP_SIZES
         )
         show_stimulus(
-            hrl=hrl,
+            ihrl=ihrl,
             stimulus_img=stimulus_img,
             matching_field_img=matching_field_img,
             match_intensity=match_intensity,
@@ -136,7 +136,7 @@ def get_last_trial(vp_id):
     return last_trl
 
 
-def run_trial(hrl, trial_idx, start_trial, end_trial):
+def run_trial(ihrl, trial_idx, start_trial, end_trial):
     # function written by Torsten and edited by Christiane, reused by GA
     # read out variable values for each trial from the design matrix
     print(f"TRIAL {trial_idx}: ")
@@ -144,7 +144,7 @@ def run_trial(hrl, trial_idx, start_trial, end_trial):
     # show break automatically, define after how many trials
     if trial_idx > 0 and (trial_idx - start_trial) == (end_trial - start_trial) // 2:
         text_displays.block_break(
-            hrl, trial=(trial_idx - start_trial), total_trials=(end_trial - start_trial)
+            ihrl, trial=(trial_idx - start_trial), total_trials=(end_trial - start_trial)
         )
 
     # get values from design matrix for current trial
@@ -161,7 +161,7 @@ def run_trial(hrl, trial_idx, start_trial, end_trial):
     stimulus_image = image_to_array(stim_name)
 
     # texture creation in buffer : stimulus
-    checkerboard_stimulus = hrl.graphics.newTexture(stimulus_image)
+    checkerboard_stimulus = ihrl.graphics.newTexture(stimulus_image)
 
     # Generate matching field
     trial_match, all_surround = make_life_matches(trial_idx)
@@ -174,11 +174,11 @@ def run_trial(hrl, trial_idx, start_trial, end_trial):
 
     # Show stimulus (and matching field)
     t1 = time.time()
-    show_stimulus(hrl, checkerboard_stimulus, matching_field, match_intensity_start)
+    show_stimulus(ihrl, checkerboard_stimulus, matching_field, match_intensity_start)
 
     # adjust the matching field intensity
     match_intensity = adjust_loop(
-        hrl, match_intensity_start, checkerboard_stimulus, matching_field
+        ihrl, match_intensity_start, checkerboard_stimulus, matching_field
     )
     t2 = time.time()
 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
         rfl.write("\t".join(result_headers) + "\n")
 
     # We create the HRL object with parameters that depend on the setup we are using
-    hrl = HRL(
+    ihrl = HRL(
         **SETUP,
         wdth=WIDTH,
         hght=HEIGHT,
@@ -294,8 +294,8 @@ if __name__ == "__main__":
     # loop over trials in design file
     # ================================
     for trl in np.arange(start_trl, end_trl):
-        run_trial(hrl, trl, start_trl, end_trl)  # function that executes the experiment
+        run_trial(ihrl, trl, start_trl, end_trl)  # function that executes the experiment
 
-    hrl.close()
+    ihrl.close()
     print("Session complete")
     rfl.close()

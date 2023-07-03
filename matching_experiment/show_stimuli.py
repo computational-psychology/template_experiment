@@ -47,7 +47,7 @@ def main(files):
     # We create the HRL object with parameters that depend on the setup we are using
     if inlab_siemens:
         # create HRL object
-        hrl = HRL(
+        ihrl = HRL(
             graphics="datapixx",
             inputs="responsepixx",
             photometer=None,
@@ -60,7 +60,7 @@ def main(files):
             fs=True,
         )
     elif inlab_viewpixx:
-        hrl = HRL(
+        ihrl = HRL(
             graphics="viewpixx",
             inputs="responsepixx",
             photometer=None,
@@ -74,7 +74,7 @@ def main(files):
         )
 
     else:
-        hrl = HRL(
+        ihrl = HRL(
             graphics="gpu",
             inputs="keyboard",
             photometer=None,
@@ -97,14 +97,14 @@ def main(files):
         im = np.asarray(image) / 255.0
 
         # texture creation in buffer, input is numpy array [0-1]
-        tex = hrl.graphics.newTexture(im)
+        tex = ihrl.graphics.newTexture(im)
         textures.append(tex)
 
     # generating text for filenames to be displayed
     texts = []
     for fname in files:
         im = text_to_arr(text=fname, intensity_background=0.27, intensity_text=0, fontsize=20)
-        tex = hrl.graphics.newTexture(im)
+        tex = ihrl.graphics.newTexture(im)
         texts.append(tex)
 
     #######
@@ -117,10 +117,10 @@ def main(files):
         tex = texts[i]
         tex.draw((100, 100))
 
-        hrl.graphics.flip(clr=True)  # clr= True to clear buffer
+        ihrl.graphics.flip(clr=True)  # clr= True to clear buffer
         print("currently showing: %s" % files[i])
 
-        (btn, t1) = hrl.inputs.readButton()
+        (btn, t1) = ihrl.inputs.readButton()
         # print btn
 
         if btn == "Space":
@@ -136,7 +136,7 @@ def main(files):
             i = 0
 
     # closing window
-    hrl.close()
+    ihrl.close()
 
 
 if __name__ == "__main__":
