@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 from PIL import Image
+from stimupy.utils import resize_array
 
 
 def position_constraint(random_array):
@@ -155,28 +156,6 @@ def make_random_array(values=np.array([]), n_checks=5):
     return out, surround_control_dict
 
 
-def resize_array(arr, factor):
-    """
-    from Torsten Betz' utils.py
-    Return a copy of an array, resized by the given factor. Every value is
-    repeated factor[d] times along dimension d.
-
-    Parameters
-    ----------
-    arr : 2D array
-          the array to be resized
-    factor : tupel of 2 ints
-             the resize factor in the y and x dimensions
-
-    Returns
-    -------
-    An array of shape (arr.shape[0] * factor[0], arr.shape[1] * factor[1])
-    """
-    x_idx = np.arange(0, arr.shape[1], 1.0 / factor[1]).astype(int)
-    y_idx = np.arange(0, arr.shape[0], 1.0 / factor[0]).astype(int)
-    return arr[:, x_idx][y_idx, :]
-
-
 def replace_image_part(stimulus=None, replacement=None, position=None):
     """
     :Input:
@@ -289,7 +268,7 @@ def make_single_trial_matches(trl_nr):
     surround_values, direct_surround = make_random_array(gray_values, n_checks)
 
     ## draw to scale
-    surround = resize_array(surround_values, (resolution, resolution))
+    surround = resize_array(surround_values, factor=(resolution, resolution))
 
     pos = np.round(surround.shape[0] / 2) - 1
 
