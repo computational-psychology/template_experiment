@@ -8,22 +8,18 @@ Uses HRL on python 3
 @authors: CW, GA.
 """
 
-import os
 import random
 import sys
 import time
 from socket import gethostname
 
 import numpy as np
-import OpenGL.GL as gl
-import pygame as pg
 
 ### Imports ###
-from helper_functions import draw_text, image_to_array, read_design, read_design_csv
+from helper_functions import draw_text, image_to_array, read_design_csv
 from hrl import HRL
 from hrl.graphics import graphics
 from make_comp_surround import make_life_matches
-from PIL import Image, ImageDraw, ImageFont
 
 inlab_siemens = True if "vlab" in gethostname() else False
 inlab_viewpixx = True if "viewpixx" in gethostname() else False

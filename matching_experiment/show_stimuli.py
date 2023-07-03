@@ -6,13 +6,13 @@ GA.
 
 """
 
-from helper_functions import image_to_array, read_design, read_design_csv, draw_text
-
-from hrl import HRL
-import numpy as np
-from PIL import Image, ImageFont, ImageDraw
 import glob
 from socket import gethostname
+
+import numpy as np
+from helper_functions import draw_text
+from hrl import HRL
+from PIL import Image
 
 inlab_siemens = True if "vlab" in gethostname() else False
 inlab_viewpixx = True if "viewpixx" in gethostname() else False
