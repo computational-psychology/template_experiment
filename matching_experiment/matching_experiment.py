@@ -23,22 +23,43 @@ from hrl import HRL
 from hrl.graphics import graphics
 from make_comp_surround import make_life_matches
 
-inlab_siemens = True if "vlab" in gethostname() else False
-inlab_viewpixx = True if "viewpixx" in gethostname() else False
+inlab_siemens = "vlab" in gethostname()
+inlab_viewpixx = "viewpixx" in gethostname()
 
 if inlab_siemens:
-    # size of Siements monitor
+    SETUP = {
+        "graphics": "datapixx",
+        "inputs": "responsepixx",
+        "scrn": 1,
+        "lut": "lut.csv",
+        "fs": True,
+    }
+    # size of Siemens monitor
     WIDTH = 1024
     HEIGHT = 768
     bg_blank = 0.1  # corresponding to 50 cd/m2 approx
 
 elif inlab_viewpixx:
+    SETUP = {
+        "graphics": "viewpixx",
+        "inputs": "responsepixx",
+        "scrn": 1,
+        "lut": "lut_viewpixx.csv",
+        "fs": True,
+    }
     # size of VPixx monitor
     WIDTH = 1920
     HEIGHT = 1080
     bg_blank = 0.27  # corresponding to 50 cd/m2 approx
 
 else:
+    SETUP = {
+        "graphics": "gpu",
+        "inputs": "keyboard",
+        "scrn": 0,
+        "lut": None,
+        "fs": True,
+    }
     WIDTH = 1024
     HEIGHT = 768
     bg_blank = 0.27
@@ -261,47 +282,14 @@ if __name__ == "__main__":
         rfl.write("\t".join(result_headers) + "\n")
 
     # We create the HRL object with parameters that depend on the setup we are using
-    if inlab_siemens:
-        # create HRL object
-        hrl = HRL(
-            graphics="datapixx",
-            inputs="responsepixx",
-            photometer=None,
-            wdth=WIDTH,
-            hght=HEIGHT,
-            bg=bg_blank,
-            scrn=1,
-            lut="lut.csv",
-            db=True,
-            fs=True,
-        )
-    elif inlab_viewpixx:
-        hrl = HRL(
-            graphics="viewpixx",
-            inputs="responsepixx",
-            photometer=None,
-            wdth=WIDTH,
-            hght=HEIGHT,
-            bg=bg_blank,
-            scrn=1,
-            lut="lut_viewpixx.csv",
-            db=True,
-            fs=True,
-        )
-
-    else:
-        hrl = HRL(
-            graphics="gpu",
-            inputs="keyboard",
-            photometer=None,
-            wdth=WIDTH,
-            hght=HEIGHT,
-            bg=bg_blank,
-            scrn=0,
-            lut=None,
-            db=True,
-            fs=False,
-        )
+    hrl = HRL(
+        **SETUP,
+        wdth=WIDTH,
+        hght=HEIGHT,
+        bg=bg_blank,
+        photometer=None,
+        db=True,
+    )
 
     # loop over trials in design file
     # ================================
