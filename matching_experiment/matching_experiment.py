@@ -64,10 +64,6 @@ else:
     HEIGHT = 768
     bg_blank = 0.27
 
-# center of screen
-whlf = WIDTH / 2.0
-hhlf = HEIGHT / 2.0
-
 
 # big and small steps during adjustment
 STEP_SIZES = (0.02, 0.002)
@@ -75,11 +71,15 @@ STEP_SIZES = (0.02, 0.002)
 
 def show_stimulus(ihrl, stimulus_img, matching_field_img, match_intensity):
     # draw the checkerboard
-    stimulus_img.draw((whlf - stimulus_img.wdth / 2, hhlf - stimulus_img.hght / 2))
+    stimulus_img.draw(
+        ((ihrl.width // 2) - stimulus_img.wdth / 2, (ihrl.height // 2) - stimulus_img.hght / 2)
+    )
 
     # create matching field with adjusted luminance
     matching_display = show_match(ihrl, match_intensity, matching_field_img)
-    matching_display.draw((whlf - matching_display.wdth / 2, hhlf / 4 - 50))
+    matching_display.draw(
+        ((ihrl.width // 2) - matching_display.wdth / 2, ((ihrl.height // 2)) / 4 - 50)
+    )
 
     # flip everything
     ihrl.graphics.flip(clr=False)  # clr= True to clear buffer

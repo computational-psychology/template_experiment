@@ -38,10 +38,6 @@ else:
     bg_blank = 0.27
     middlegap = 150  # pixels
 
-# center of screen
-whlf = WIDTH / 2.0
-hhlf = HEIGHT / 2.0
-
 
 def main(files):
     # We create the HRL object with parameters that depend on the setup we are using
@@ -112,7 +108,7 @@ def main(files):
     #######################################
     while True:
         tex = textures[i]
-        tex.draw((whlf - tex.wdth / 2, hhlf - tex.hght / 2))
+        tex.draw(((ihrl.width // 2) - tex.wdth / 2, (ihrl.height // 2) - tex.hght / 2))
 
         tex = texts[i]
         tex.draw((100, 100))
