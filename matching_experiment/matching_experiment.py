@@ -48,9 +48,8 @@ whlf = WIDTH / 2.0
 hhlf = HEIGHT / 2.0
 
 
-# small and big steps during adjustment
-sms = 0.002
-bgs = 0.02
+# big and small steps during adjustment
+STEP_SIZES = (0.02, 0.002)
 
 
 ## Functions which are needed for the experiment
@@ -71,58 +70,14 @@ def show_stimulus(hrl, checkerboard, curr_match, match_lum):
 
 
 def adjust_loop(hrl, match_lum, checkerboard, curr_match):
-    btn = None
-    while btn != "Space":
-        (btn, t1) = hrl.inputs.readButton()
-        if btn == "Up":
-            match_lum += bgs
-            if match_lum > 1:
-                adjustment.warning_max(hrl, lang=LANG)
-                match_lum = 1.0
-            elif match_lum < 0:
-                adjustment.warning_min(hrl, lang=LANG)
-                match_lum = 0.0
-            show_stimulus(hrl, checkerboard, curr_match, match_lum)
-        elif btn == "Down":
-            match_lum -= bgs
-            if match_lum > 1.0:
-                adjustment.warning_max(hrl, lang=LANG)
-                match_lum = 1.0
-            elif match_lum < 0.0:
-                adjustment.warning_min(hrl, lang=LANG)
-                match_lum = 0.0
-            show_stimulus(hrl, checkerboard, curr_match, match_lum)
-        elif btn == "Right":
-            match_lum += sms
-            if match_lum > 1.0:
-                adjustment.warning_max(hrl, lang=LANG)
-                match_lum = 1.0
-            elif match_lum < 0.0:
-                adjustment.warning_min(hrl, lang=LANG)
-                match_lum = 0.0
-            show_stimulus(hrl, checkerboard, curr_match, match_lum)
-        elif btn == "Left":
-            match_lum -= sms
-            if match_lum > 1.0:
-                adjustment.warning_max(hrl, lang=LANG)
-                match_lum = 1.0
-            elif match_lum < 0.0:
-                adjustment.warning_min(hrl, lang=LANG)
-                match_lum = 0.0
-            show_stimulus(hrl, checkerboard, curr_match, match_lum)
-        elif btn == "Space":
-            print("space")
-
-        # if hrl.inputs.checkEscape():
-        elif btn == "Escape":
-            print("Escape pressed, exiting experiment!!")
-            hrl.close()
-            sys.exit(0)
+    accept = False
+    while not accept:
+        match_lum, accept = adjustment.adjust(ihrl=hrl, value=match_lum, step_size=STEP_SIZES)
+        show_stimulus(hrl, checkerboard, curr_match, match_lum)
 
     print("MatchLum =", match_lum)
-    print("Button = ", btn)
 
-    return match_lum, btn
+    return match_lum
 
 
 def show_match(hrl, match_lum, curr_match):
@@ -185,28 +140,23 @@ def run_trial(hrl, trl, start_trl, end_trl):
     # texture creation in buffer : stimulus
     checkerboard = hrl.graphics.newTexture(curr_image)
 
-    # random assignment of start match intensity between 0 and 1
-    start_idx = random.random()
-    no_match = True
-    match_lum = start_idx
-
     # generate match stimulus
     trial_match, all_surround = match_stimulus(trl)
 
     t1 = time.time()
-    while no_match:  # as long as no_match TRUE
-        # curr_match = np.array(trial_match.shape, dtype=np.float64)
-        curr_match = trial_match / 255.0
-        # print curr_match[60]
 
-        # Show stimulus and match
-        show_stimulus(hrl, checkerboard, curr_match, match_lum)
+    # curr_match = np.array(trial_match.shape, dtype=np.float64)
+    curr_match = trial_match / 255.0
+    # print curr_match[60]
 
-        # adjust the lumiance
-        match_lum, btn = adjust_loop(hrl, match_lum, checkerboard, curr_match)
-        print("btn =", btn)
-        if btn == "Space":
-            no_match = False
+    # starting intensity of matching field: random between 0 and 1
+    match_intensity_start = random.random()
+
+    # Show stimulus and match
+    show_stimulus(hrl, checkerboard, curr_match, match_intensity_start)
+
+    # adjust the lumiance
+    match_intensity = adjust_loop(hrl, match_intensity_start, checkerboard, curr_match)
 
     t2 = time.time()
     resptime = t2 - t1
@@ -214,7 +164,16 @@ def run_trial(hrl, trl, start_trl, end_trl):
 
     rfl.write(
         "%d\t%s\t%s\t%f\t%f\t%f\t%f\t%f\n"
-        % (Trial, context, stim_name, r, start_idx, match_lum, resptime, timestamp)
+        % (
+            Trial,
+            context,
+            stim_name,
+            r,
+            match_intensity_start,
+            match_intensity,
+            resptime,
+            timestamp,
+        )
     )
     rfl.flush()
 
@@ -261,7 +220,7 @@ def run_trial(hrl, trl, start_trl, end_trl):
     # clean checkerboard texture
     graphics.deleteTextureDL(checkerboard._dlid)
 
-    return match_lum
+    return match_intensity
 
 
 ### Run Main ###
