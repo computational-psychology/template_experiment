@@ -241,7 +241,7 @@ def run_trial(ihrl, trial_idx, start_trial, end_trial):
     # image.save('screenshot_%d.png' % trl)
 
     # clean checkerboard texture
-    graphics.deleteTextureDL(checkerboard_stimulus._dlid)
+    checkerboard_stimulus.delete()
 
     return match_intensity
 

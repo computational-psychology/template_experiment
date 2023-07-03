@@ -117,7 +117,7 @@ def display_text(
     ihrl.graphics.flip(clr=True)
 
     # Cleanup: delete texture
-    graphics.deleteTextureDL(textline._dlid)
+    textline.delete()
 
     return
 
