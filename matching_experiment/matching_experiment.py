@@ -96,13 +96,6 @@ def adjust_loop(hrl, match_intensity, stimulus_img, matching_field_img):
     return match_intensity
 
 
-def match_stimulus(trl):
-    trial_match, all_surround = make_life_matches(trl)
-    # return the one with a -1 at the center patch, so we can easily replace this area later on
-    # print all_surround
-    return trial_match[-1], all_surround
-
-
 def get_last_trial(vp_id):
     try:
         rfl = open(f"results/{vp_id}/{vp_id}.txt")
@@ -150,8 +143,10 @@ def run_trial(hrl, trial_idx, start_trial, end_trial):
     checkerboard_stimulus = hrl.graphics.newTexture(stimulus_image)
 
     # Generate matching field
-    trial_match, all_surround = match_stimulus(trial_idx)
-    matching_field = trial_match / 255.0
+    trial_match, all_surround = make_life_matches(trial_idx)
+    # return the one with a -1 at the center patch, so we can easily replace this area later on
+    # print all_surround
+    matching_field = trial_match[-1] / 255.0
 
     # starting intensity of matching field: random between 0 and 1
     match_intensity_start = random.random()
