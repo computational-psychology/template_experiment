@@ -268,24 +268,29 @@ def load_matching_field(cnt):
 def make_life_matches(trl_nr):
     center_size = 50
     resolution = 24
+
+    # Load matching field from file
+
+    # Permutate: flip surround, possibly multiple directions
     cnt_idx = np.array((1, 2, 3, 4))
     random.shuffle(cnt_idx)
     cnt = cnt_idx[0]
     surround_values = load_matching_field(cnt)
 
+    # Resize to full resolution
     surround = resize_array(surround_values, (resolution, resolution))
 
     pos = np.round(surround.shape[0] / 2) - 1
 
     matches = {}
 
-    ## modify match intensity on constant surround
+    # modify match intensity on constant surround
     for center_int in np.arange(256):
         center = np.ones((center_size, center_size)) * center_int
         matches[center_int] = replace_image_part(surround, center, (pos, pos))
 
-    ## returns an extra image where the center target region has -1
-    ## in that way we can easily replace the values with the actual match value
+    # returns an extra image where the center target region has -1
+    # in that way we can easily replace the values with the actual match value
     center = np.ones((center_size, center_size)) * -1
     matches[-1] = replace_image_part(surround, center, (pos, pos))
 
