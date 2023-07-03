@@ -52,15 +52,13 @@ hhlf = HEIGHT / 2.0
 STEP_SIZES = (0.02, 0.002)
 
 
-## Functions which are needed for the experiment
-def show_stimulus(hrl, checkerboard, curr_match, match_lum):
+def show_stimulus(hrl, stimulus_img, matching_field_img, match_intensity):
     # draw the checkerboard
-    checkerboard.draw((whlf - checkerboard.wdth / 2, hhlf - checkerboard.hght / 2))
-    # print "new_match_lum =", match_lum
+    stimulus_img.draw((whlf - stimulus_img.wdth / 2, hhlf - stimulus_img.hght / 2))
 
-    # create match stimulus with adjusted luminance
-    center_display = show_match(hrl, match_lum, curr_match)
-    center_display.draw((whlf - center_display.wdth / 2, hhlf / 4 - 50))
+    # create matching field with adjusted luminance
+    matching_display = show_match(hrl, match_intensity, matching_field_img)
+    matching_display.draw((whlf - matching_display.wdth / 2, hhlf / 4 - 50))
 
     # flip everything
     hrl.graphics.flip(clr=False)  # clr= True to clear buffer
@@ -69,26 +67,33 @@ def show_stimulus(hrl, checkerboard, curr_match, match_lum):
     # graphics.deleteTextureDL(center_display._dlid)
 
 
-def adjust_loop(hrl, match_lum, checkerboard, curr_match):
-    accept = False
-    while not accept:
-        match_lum, accept = adjustment.adjust(ihrl=hrl, value=match_lum, step_size=STEP_SIZES)
-        show_stimulus(hrl, checkerboard, curr_match, match_lum)
-
-    print("MatchLum =", match_lum)
-
-    return match_lum
-
-
-def show_match(hrl, match_lum, curr_match):
+def show_match(hrl, match_intensity, matching_field_img):
     # replace the center patch on top of the match_display
     # and adjust it to the matched luminace
 
-    center = np.copy(curr_match)
-    center[center < 0] = match_lum
+    center = np.copy(matching_field_img)
+    center[center < 0] = match_intensity
     # create new texture
     center_display = hrl.graphics.newTexture(center)
     return center_display
+
+
+def adjust_loop(hrl, match_intensity, stimulus_img, matching_field_img):
+    accept = False
+    while not accept:
+        match_intensity, accept = adjustment.adjust(
+            ihrl=hrl, value=match_intensity, step_size=STEP_SIZES
+        )
+        show_stimulus(
+            hrl=hrl,
+            stimulus_img=stimulus_img,
+            matching_field_img=matching_field_img,
+            match_intensity=match_intensity,
+        )
+
+    print(f"Match intensity = {match_intensity}")
+
+    return match_intensity
 
 
 def match_stimulus(trl):
@@ -117,48 +122,50 @@ def get_last_trial(vp_id):
     return last_trl
 
 
-def run_trial(hrl, trl, start_trl, end_trl):
+def run_trial(hrl, trial_idx, start_trial, end_trial):
     # function written by Torsten and edited by Christiane, reused by GA
     # read out variable values for each trial from the design matrix
-    print("TRIAL =", trl)
+    print(f"TRIAL {trial_idx}: ")
 
     # show break automatically, define after how many trials
-    if trl > 0 and (trl - start_trl) == (end_trl - start_trl) // 2:
-        text_displays.block_break(hrl, trial=(trl - start_trl), total_trials=(end_trl - start_trl))
+    if trial_idx > 0 and (trial_idx - start_trial) == (end_trial - start_trial) // 2:
+        text_displays.block_break(
+            hrl, trial=(trial_idx - start_trial), total_trials=(end_trial - start_trial)
+        )
 
     # get values from design matrix for current trial
-    context, r, Trial = design["context"][trl], float(design["r"][trl]), int(design["Trial"][trl])
+    context, r, Trial = (
+        design["context"][trial_idx],
+        float(design["r"][trial_idx]),
+        int(design["Trial"][trial_idx]),
+    )
 
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
-    stim_name = f"stimuli/{vp_id}/{Trial}_{context}_{r:.2f}"
-
-    # print "r =", r
+    stim_name = f"stimuli/{participant}/{Trial}_{context}_{r:.2f}"
 
     # load stimlus image and convert from png to numpy array
-    curr_image = image_to_array(stim_name)
+    stimulus_image = image_to_array(stim_name)
 
     # texture creation in buffer : stimulus
-    checkerboard = hrl.graphics.newTexture(curr_image)
+    checkerboard_stimulus = hrl.graphics.newTexture(stimulus_image)
 
-    # generate match stimulus
-    trial_match, all_surround = match_stimulus(trl)
-
-    t1 = time.time()
-
-    # curr_match = np.array(trial_match.shape, dtype=np.float64)
-    curr_match = trial_match / 255.0
-    # print curr_match[60]
+    # Generate matching field
+    trial_match, all_surround = match_stimulus(trial_idx)
+    matching_field = trial_match / 255.0
 
     # starting intensity of matching field: random between 0 and 1
     match_intensity_start = random.random()
 
-    # Show stimulus and match
-    show_stimulus(hrl, checkerboard, curr_match, match_intensity_start)
+    # Show stimulus (and matching field)
+    t1 = time.time()
+    show_stimulus(hrl, checkerboard_stimulus, matching_field, match_intensity_start)
 
-    # adjust the lumiance
-    match_intensity = adjust_loop(hrl, match_intensity_start, checkerboard, curr_match)
-
+    # adjust the matching field intensity
+    match_intensity = adjust_loop(
+        hrl, match_intensity_start, checkerboard_stimulus, matching_field
+    )
     t2 = time.time()
+
     resptime = t2 - t1
     timestamp = time.time()
 
@@ -218,7 +225,7 @@ def run_trial(hrl, trl, start_trl, end_trl):
     # image.save('screenshot_%d.png' % trl)
 
     # clean checkerboard texture
-    graphics.deleteTextureDL(checkerboard._dlid)
+    graphics.deleteTextureDL(checkerboard_stimulus._dlid)
 
     return match_intensity
 
@@ -227,22 +234,22 @@ def run_trial(hrl, trl, start_trl, end_trl):
 if __name__ == "__main__":
     LANG = "en"  # 'de' or 'en'
 
-    vp_id = input("Bitte geben Sie Ihre Initialen ein (z.B. demo): ")
+    participant = input("Bitte geben Sie Ihre Initialen ein (z.B. demo): ")
 
     # get last trial from results file, to be able to resume from that trial onwards
-    start_trl = get_last_trial(vp_id)
+    start_trl = get_last_trial(participant)
 
     # read design file and open result file for saving
-    design = read_design_csv(f"design/{vp_id}/{vp_id}.csv")
+    design = read_design_csv(f"design/{participant}/{participant}.csv")
 
     #  get last trial (total number of trials)
     end_trl = len(design["Trial"])
 
     # results file
-    rfl = open(f"results/{vp_id}/{vp_id}.txt", "a")
+    rfl = open(f"results/{participant}/{participant}.txt", "a")
 
     # file to save surround of match check
-    fid_all_match = open(f"results/{vp_id}/{vp_id}_all_match_surr.txt", "a")
+    fid_all_match = open(f"results/{participant}/{participant}_all_match_surr.txt", "a")
 
     if start_trl == 0:
         # fid_match.write('b2\tc2\td2\td3\td4\tc4\tb4\tb3\n')
