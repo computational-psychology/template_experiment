@@ -10,7 +10,7 @@ Functions written over the years at the TU Vision group.
 """
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 
 def image_to_array(fname, in_format="png"):
@@ -82,26 +82,6 @@ def read_design_csv(fname):
         for j, k in enumerate(header):
             new_data[k].append(curr_line[j])
     return new_data
-
-
-def draw_text(text, bg=0.27, text_color=0, fontsize=48):
-    # function from Torsten
-    """
-    Create a numpy array containing the string text as an image.
-
-    @author: TB
-    """
-
-    bg *= 255
-    text_color *= 255
-    font = ImageFont.truetype(
-        "/usr/share/fonts/truetype/msttcorefonts/arial.ttf", fontsize, encoding="unic"
-    )
-    text_width, text_height = font.getsize(text)
-    im = Image.new("L", (text_width, text_height), int(bg))
-    draw = ImageDraw.Draw(im)
-    draw.text((0, 0), text, fill=text_color, font=font)
-    return np.array(im) / 255.0
 
 
 # EOF

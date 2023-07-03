@@ -14,9 +14,10 @@ import time
 from socket import gethostname
 
 import numpy as np
+import text_displays
 
 ### Imports ###
-from helper_functions import draw_text, image_to_array, read_design_csv
+from helper_functions import image_to_array, read_design_csv
 from hrl import HRL
 from hrl.graphics import graphics
 from make_comp_surround import make_life_matches
@@ -67,7 +68,7 @@ def warning_min(hrl):
         raise ("LANG not available")
 
     for line_nr, line in enumerate(lines):
-        textline = hrl.graphics.newTexture(draw_text(line, fontsize=36))
+        textline = hrl.graphics.newTexture(text_displays.text_to_arr(text=line, fontsize=36))
         textline.draw(
             ((1024 - textline.wdth) / 2, (768 / 2 - (4 - line_nr) * (textline.hght + 10)))
         )
@@ -92,7 +93,7 @@ def warning_max(hrl):
         raise ("LANG not available")
 
     for line_nr, line in enumerate(lines):
-        textline = hrl.graphics.newTexture(draw_text(line, fontsize=36))
+        textline = hrl.graphics.newTexture(text_displays.text_to_arr(text=line, fontsize=36))
         textline.draw(
             ((1024 - textline.wdth) / 2, (768 / 2 - (4 - line_nr) * (textline.hght + 10)))
         )
@@ -210,50 +211,14 @@ def get_last_trial(vp_id):
     return last_trl
 
 
-def show_break(hrl, trial, total_trials):
-    # Function from Thorsten
-    hrl.graphics.flip(clr=True)
-
-    if LANG == "de":
-        lines = [
-            "Du kannst jetzt eine Pause machen.",
-            " ",
-            "Du hast %d von %d Durchgängen geschafft." % (trial, total_trials),
-            " ",
-            "Wenn du bereit bist, drücke die mittlere Taste.",
-        ]
-    elif LANG == "en":
-        lines = [
-            "You can take a break now.",
-            " ",
-            "You have completed %d out of %d trials." % (trial, total_trials),
-            " ",
-            "When you are ready, press the middle button.",
-        ]
-    else:
-        raise ("LANG not available")
-
-    for line_nr, line in enumerate(lines):
-        textline = hrl.graphics.newTexture(draw_text(line, fontsize=36))
-        textline.draw(
-            ((1024 - textline.wdth) / 2, (768 / 2 - (4 - line_nr) * (textline.hght + 10)))
-        )
-    hrl.graphics.flip(clr=True)
-    btn = None
-    while btn != "Space":
-        (btn, t1) = hrl.inputs.readButton()
-    # clean text
-    graphics.deleteTextureDL(textline._dlid)
-
-
 def run_trial(hrl, trl, start_trl, end_trl):
     # function written by Torsten and edited by Christiane, reused by GA
     # read out variable values for each trial from the design matrix
     print("TRIAL =", trl)
 
     # show break automatically, define after how many trials
-    if (trl - start_trl) % 50 == 0:
-        show_break(hrl, (trl - start_trl), (end_trl - start_trl))
+    if trl > 0 and (trl - start_trl) == (end_trl - start_trl) // 2:
+        text_displays.block_break(hrl, trial=(trl - start_trl), total_trials=(end_trl - start_trl))
 
     # get values from design matrix for current trial
     context, r, Trial = design["context"][trl], float(design["r"][trl]), int(design["Trial"][trl])

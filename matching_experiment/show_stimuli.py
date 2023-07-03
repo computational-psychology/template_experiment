@@ -10,9 +10,9 @@ import glob
 from socket import gethostname
 
 import numpy as np
-from helper_functions import draw_text
 from hrl import HRL
 from PIL import Image
+from text_displays import text_to_arr
 
 inlab_siemens = True if "vlab" in gethostname() else False
 inlab_viewpixx = True if "viewpixx" in gethostname() else False
@@ -103,7 +103,7 @@ def main(files):
     # generating text for filenames to be displayed
     texts = []
     for fname in files:
-        im = draw_text(fname, bg=0.27, text_color=0, fontsize=20)
+        im = text_to_arr(text=fname, intensity_background=0.27, intensity_text=0, fontsize=20)
         tex = hrl.graphics.newTexture(im)
         texts.append(tex)
 
