@@ -9,19 +9,16 @@ Uses HRL on python 3
 """
 
 import random
-import sys
 import time
 from socket import gethostname
 
 import adjustment
 import numpy as np
 import text_displays
-
-### Imports ###
 from helper_functions import image_to_array, read_design_csv
 from hrl import HRL
-from hrl.graphics import graphics
 from make_comp_surround import make_life_matches
+from stimuli import show_stimulus
 
 inlab_siemens = "vlab" in gethostname()
 inlab_viewpixx = "viewpixx" in gethostname()
@@ -69,37 +66,7 @@ else:
 STEP_SIZES = (0.02, 0.002)
 
 
-def show_stimulus(ihrl, stimulus_img, matching_field_img, match_intensity):
-    # draw the checkerboard
-    stimulus_img.draw(
-        ((ihrl.width // 2) - stimulus_img.wdth / 2, (ihrl.height // 2) - stimulus_img.hght / 2)
-    )
-
-    # create matching field with adjusted luminance
-    matching_display = show_match(ihrl, match_intensity, matching_field_img)
-    matching_display.draw(
-        ((ihrl.width // 2) - matching_display.wdth / 2, ((ihrl.height // 2)) / 4 - 50)
-    )
-
-    # flip everything
-    ihrl.graphics.flip(clr=False)  # clr= True to clear buffer
-
-    # delete texture from buffer
-    # graphics.deleteTextureDL(center_display._dlid)
-
-
-def show_match(ihrl, match_intensity, matching_field_img):
-    # replace the center patch on top of the match_display
-    # and adjust it to the matched luminace
-
-    center = np.copy(matching_field_img)
-    center[center < 0] = match_intensity
-    # create new texture
-    center_display = ihrl.graphics.newTexture(center)
-    return center_display
-
-
-def adjust_loop(ihrl, match_intensity, stimulus_img, matching_field_img):
+def adjust_loop(ihrl, match_intensity, stimulus_texture, matching_field_img):
     accept = False
     while not accept:
         match_intensity, accept = adjustment.adjust(
@@ -107,7 +74,7 @@ def adjust_loop(ihrl, match_intensity, stimulus_img, matching_field_img):
         )
         show_stimulus(
             ihrl=ihrl,
-            stimulus_img=stimulus_img,
+            stimulus_texture=stimulus_texture,
             matching_field_img=matching_field_img,
             match_intensity=match_intensity,
         )
@@ -174,7 +141,12 @@ def run_trial(ihrl, trial_idx, start_trial, end_trial):
 
     # Show stimulus (and matching field)
     t1 = time.time()
-    show_stimulus(ihrl, checkerboard_stimulus, matching_field, match_intensity_start)
+    show_stimulus(
+        ihrl,
+        stimulus_texture=checkerboard_stimulus,
+        matching_field_img=matching_field,
+        match_intensity=match_intensity_start,
+    )
 
     # adjust the matching field intensity
     match_intensity = adjust_loop(
