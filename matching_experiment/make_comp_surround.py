@@ -240,7 +240,7 @@ def image_to_array(fname, in_format="png"):
     return im_matrix
 
 
-def load_matching_field(cnt):
+def load_matching_field():
     TRM = open("matchsurround.txt")  # open Text-File
 
     A = np.zeros((5, 5))
@@ -252,6 +252,10 @@ def load_matching_field(cnt):
         values = [float(P) for P in parts]  # transforms each string in the line in a float
         A[cnt_A,] = values
 
+    return A
+
+
+def flip_surround(A, cnt):
     if cnt == 1:
         surround_values = np.fliplr(A)
     if cnt == 2:
@@ -270,12 +274,13 @@ def make_life_matches(trl_nr):
     resolution = 24
 
     # Load matching field from file
+    surround_values = load_matching_field()
 
     # Permutate: flip surround, possibly multiple directions
     cnt_idx = np.array((1, 2, 3, 4))
     random.shuffle(cnt_idx)
     cnt = cnt_idx[0]
-    surround_values = load_matching_field(cnt)
+    surround_values = flip_surround(surround_values, cnt)
 
     # Resize to full resolution
     surround = resize_array(surround_values, (resolution, resolution))
