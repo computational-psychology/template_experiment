@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-import numpy as np
-import random
-from PIL import Image
 import os
+import random
+
+import numpy as np
+from PIL import Image
 
 
 def position_constraint(random_array):
@@ -219,7 +219,7 @@ def array_to_image(stimulus_array=None, outfile_name=None, out_format="bmp"):
     im_row, im_col = stimulus_array.shape
     im_new = Image.new("L", (im_col, im_row))
     im_new.putdata(stimulus_array.flatten())
-    im_new.save("%s.%s" % (outfile_name, out_format), format=out_format)
+    im_new.save(f"{outfile_name}.{out_format}", format=out_format)
 
 
 def image_to_array(fname, in_format="png"):
@@ -233,7 +233,7 @@ def image_to_array(fname, in_format="png"):
     -------
     numpy array
     """
-    im = Image.open("%s.%s" % (fname, in_format)).convert("L")
+    im = Image.open(f"{fname}.{in_format}").convert("L")
     im_matrix = [im.getpixel((y, x)) for x in range(im.size[1]) for y in range(im.size[0])]
     im_matrix = np.array(im_matrix).reshape(im.size[1], im.size[0])
 

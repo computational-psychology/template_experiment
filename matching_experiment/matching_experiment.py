@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Asymmetric matching experiment with external, variegatd matching field
 
@@ -9,19 +8,22 @@ Uses HRL on python 3
 @authors: CW, GA.
 """
 
+import os
+import random
+import sys
+import time
+from socket import gethostname
+
+import numpy as np
+import OpenGL.GL as gl
+import pygame as pg
+
 ### Imports ###
-from helper_functions import image_to_array, read_design, read_design_csv, draw_text
-from make_comp_surround import make_life_matches
+from helper_functions import draw_text, image_to_array, read_design, read_design_csv
 from hrl import HRL
 from hrl.graphics import graphics
-
-import pygame as pg
-import OpenGL.GL as gl
-import numpy as np
-from PIL import Image, ImageFont, ImageDraw
-import random, sys, os, time
-
-from socket import gethostname
+from make_comp_surround import make_life_matches
+from PIL import Image, ImageDraw, ImageFont
 
 inlab_siemens = True if "vlab" in gethostname() else False
 inlab_viewpixx = True if "viewpixx" in gethostname() else False
@@ -195,8 +197,8 @@ def match_stimulus(trl):
 
 def get_last_trial(vp_id):
     try:
-        rfl = open("results/%s/%s.txt" % (vp_id, vp_id), "r")
-    except IOError:
+        rfl = open(f"results/{vp_id}/{vp_id}.txt")
+    except OSError:
         print("result file not found")
         return 0
 
@@ -261,8 +263,7 @@ def run_trial(hrl, trl, start_trl, end_trl):
     context, r, Trial = design["context"][trl], float(design["r"][trl]), int(design["Trial"][trl])
 
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
-    trialname = "%d_%s_%.2f" % (Trial, context, r)
-    stim_name = "stimuli/%s/%s" % (vp_id, trialname)
+    stim_name = f"stimuli/{vp_id}/{Trial}_{context}_{r:.2f}"
 
     # print "r =", r
 
@@ -361,16 +362,16 @@ if __name__ == "__main__":
     start_trl = get_last_trial(vp_id)
 
     # read design file and open result file for saving
-    design = read_design_csv("design/%s/%s.csv" % (vp_id, vp_id))
+    design = read_design_csv(f"design/{vp_id}/{vp_id}.csv")
 
     #  get last trial (total number of trials)
     end_trl = len(design["Trial"])
 
     # results file
-    rfl = open("results/%s/%s.txt" % (vp_id, vp_id), "a")
+    rfl = open(f"results/{vp_id}/{vp_id}.txt", "a")
 
     # file to save surround of match check
-    fid_all_match = open("results/%s/%s_all_match_surr.txt" % (vp_id, vp_id), "a")
+    fid_all_match = open(f"results/{vp_id}/{vp_id}_all_match_surr.txt", "a")
 
     if start_trl == 0:
         # fid_match.write('b2\tc2\td2\td3\td4\tc4\tb4\tb3\n')

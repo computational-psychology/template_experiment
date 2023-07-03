@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Some functions used during experiments. 
 For HRL on Python 2
@@ -10,8 +9,8 @@ Functions written over the years at the TU Vision group.
 @author: MM, KZ, CW, TB and GA, collected by GA.
 """
 
-from PIL import Image, ImageFont, ImageDraw
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 
 def image_to_array(fname, in_format="png"):
@@ -29,7 +28,7 @@ def image_to_array(fname, in_format="png"):
     -------
     numpy array
     """
-    im = Image.open("%s.%s" % (fname, in_format)).convert("L")
+    im = Image.open(f"{fname}.{in_format}").convert("L")
     temp_matrix = [im.getpixel((y, x)) for x in range(im.size[1]) for y in range(im.size[0])]
     temp_matrix = np.array(temp_matrix).reshape(im.size[1], im.size[0])
     im_matrix = np.array(temp_matrix.shape, dtype=np.float64)
