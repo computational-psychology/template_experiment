@@ -13,6 +13,7 @@ import sys
 import time
 from socket import gethostname
 
+import adjustment
 import numpy as np
 import text_displays
 
@@ -53,56 +54,6 @@ bgs = 0.02
 
 
 ## Functions which are needed for the experiment
-def warning_min(hrl):
-    # function that generates a beep tone
-    # status=  os.system('beep')
-    # print "beep status ", + status
-
-    hrl.graphics.flip(clr=True)
-    if LANG == "de":
-        lines = ["Minimum erreicht!", " ", "Zum Weitermachen, drücke die mittlere Taste."]
-
-    elif LANG == "en":
-        lines = ["Reached minimum!", " ", "To continue, press the middle button."]
-    else:
-        raise ("LANG not available")
-
-    for line_nr, line in enumerate(lines):
-        textline = hrl.graphics.newTexture(text_displays.text_to_arr(text=line, fontsize=36))
-        textline.draw(
-            ((1024 - textline.wdth) / 2, (768 / 2 - (4 - line_nr) * (textline.hght + 10)))
-        )
-    hrl.graphics.flip(clr=True)
-    btn = None
-    while btn != "Space":
-        (btn, t1) = hrl.inputs.readButton()
-
-
-def warning_max(hrl):
-    # function that generates a beep tone
-    # status=  os.system('beep')
-    # print "beep status ", + status
-    hrl.graphics.flip(clr=True)
-
-    if LANG == "de":
-        lines = ["Maximum erreicht!", " ", "Zum Weitermachen, drücke die mittlere Taste."]
-
-    elif LANG == "en":
-        lines = ["Reached maximum!", " ", "To continue, press the middle button."]
-    else:
-        raise ("LANG not available")
-
-    for line_nr, line in enumerate(lines):
-        textline = hrl.graphics.newTexture(text_displays.text_to_arr(text=line, fontsize=36))
-        textline.draw(
-            ((1024 - textline.wdth) / 2, (768 / 2 - (4 - line_nr) * (textline.hght + 10)))
-        )
-    hrl.graphics.flip(clr=True)
-    btn = None
-    while btn != "Space":
-        (btn, t1) = hrl.inputs.readButton()
-
-
 def show_stimulus(hrl, checkerboard, curr_match, match_lum):
     # draw the checkerboard
     checkerboard.draw((whlf - checkerboard.wdth / 2, hhlf - checkerboard.hght / 2))
@@ -126,37 +77,37 @@ def adjust_loop(hrl, match_lum, checkerboard, curr_match):
         if btn == "Up":
             match_lum += bgs
             if match_lum > 1:
-                warning_max(hrl)
+                adjustment.warning_max(hrl, lang=LANG)
                 match_lum = 1.0
             elif match_lum < 0:
-                warning_min(hrl)
+                adjustment.warning_min(hrl, lang=LANG)
                 match_lum = 0.0
             show_stimulus(hrl, checkerboard, curr_match, match_lum)
         elif btn == "Down":
             match_lum -= bgs
             if match_lum > 1.0:
-                warning_max(hrl)
+                adjustment.warning_max(hrl, lang=LANG)
                 match_lum = 1.0
             elif match_lum < 0.0:
-                warning_min(hrl)
+                adjustment.warning_min(hrl, lang=LANG)
                 match_lum = 0.0
             show_stimulus(hrl, checkerboard, curr_match, match_lum)
         elif btn == "Right":
             match_lum += sms
             if match_lum > 1.0:
-                warning_max(hrl)
+                adjustment.warning_max(hrl, lang=LANG)
                 match_lum = 1.0
             elif match_lum < 0.0:
-                warning_min(hrl)
+                adjustment.warning_min(hrl, lang=LANG)
                 match_lum = 0.0
             show_stimulus(hrl, checkerboard, curr_match, match_lum)
         elif btn == "Left":
             match_lum -= sms
             if match_lum > 1.0:
-                warning_max(hrl)
+                adjustment.warning_max(hrl, lang=LANG)
                 match_lum = 1.0
             elif match_lum < 0.0:
-                warning_min(hrl)
+                adjustment.warning_min(hrl, lang=LANG)
                 match_lum = 0.0
             show_stimulus(hrl, checkerboard, curr_match, match_lum)
         elif btn == "Space":
