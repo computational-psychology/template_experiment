@@ -39,33 +39,6 @@ def matching_field(variegated_array, resolution, field_size, field_intensity, fi
     return combined["img"]
 
 
-def replace_image_part(stimulus=None, replacement=None, position=None):
-    """
-    :Input:
-    ----------
-    stimulus    - numpy array of original stimulus
-    increment   - numpy array of to be added increment
-    position    - tuple of center coordinates within stimulus where increment should be placed
-    :Output:
-    ----------
-    """
-
-    inc_y, inc_x = replacement.shape
-    pos_y, pos_x = position
-
-    x1 = int(pos_x - inc_x / 2)
-    x2 = int(pos_x + inc_x / 2)
-    y1 = int(pos_y - inc_y / 2)
-    y2 = int(pos_y + inc_y / 2)
-
-    new_stimulus = stimulus.copy()
-
-    for k, c in enumerate(range(x1, x2)):
-        for l, r in enumerate(range(y1, y2)):
-            new_stimulus[r, c] = replacement[l, k]
-    return new_stimulus
-
-
 def load_variegated_array(filename="matchsurround.txt"):
     # Load variegated array from file
     variegated_array = np.fromtxt(Path(filename))
