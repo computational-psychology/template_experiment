@@ -110,30 +110,15 @@ def gen_matching_fields_range(
     return matches
 
 
-def export_matching_fields(
-    filedir,
-    variegated_array,
-    field_size,
-    resolution,
-    intensity_values=np.arange(256),
-    field_pos=None,
-):
+def export_matching_fields(filedir, matching_fields):
     # Check that output dir exists
     if not Path(filedir).exists():
         Path(filedir).mkdir(parents=True, exist_ok=True)
 
-    # Generate matching fields for range of intensities of center patch
-    for intensity in intensity_values:
-        match_stimulus = matching_field(
-            variegated_array=variegated_array,
-            resolution=resolution,
-            field_size=field_size,
-            field_intensity=intensity,
-            field_pos=field_pos,
-        )
-
+    # Export
+    for intensity, matching_field in matching_fields.items():
         filename = f"match_{intensity:03d}.bmp"
-        array_to_image(match_stimulus, Path(filedir) / filename, norm=False)
+        array_to_image(matching_field, Path(filedir) / filename, norm=False)
 
 
 def read_surround_checks(fname):
@@ -171,16 +156,23 @@ if __name__ == "__main__":
                 INTENSITY_VALUES, n_checks
             )
 
-            # Generate files for all possible matching fields
+            # Generate all possible matching intensities
+            matching_fields = gen_matching_fields_range(
+                intensity_values=np.arange(255),
+                variegated_array=surround_values,
+                field_size=field_size,
+                resolution=24,
+                field_pos=None,
+            )
+
+            # Export matching fields
             filedir = f"stimuli/match/trl_{trl_nr:03d}"
             export_matching_fields(
                 filedir=filedir,
-                variegated_array=surround_values,
-                field_size=field_size,
-                resolution=resolution,
-                intensity_values=np.arange(256),
+                matching_fields=matching_fields,
             )
 
+            # Record direct surround
             file.write(
                 "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
                 % (
