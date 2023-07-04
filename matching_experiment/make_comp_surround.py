@@ -5,6 +5,9 @@ import numpy as np
 from PIL import Image
 from stimupy.utils import resize_array
 
+INTENSITY_VALUES = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 202])
+# INTENSITY_VALUES = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
+
 
 def position_constraint(random_array):
     """
@@ -219,11 +222,7 @@ def image_to_array(fname, in_format="png"):
     return im_matrix
 
 
-def make_life_matches(trl_nr):
-    center_size = 50
-    resolution = 24
-    intensity_values = np.arange(256)
-
+def make_life_matches(center_size=50, resolution=24, intensity_values=np.arange(256)):
     # Load variegated array from file
     surround_values = np.fromtxt("matchsurround.txt")
 
@@ -253,18 +252,15 @@ def make_life_matches(trl_nr):
     return matches, surround_values
 
 
-def make_single_trial_matches(trl_nr):
+def make_single_trial_matches(
+    trl_nr, n_checks=5, center_size=50, resolution=24, intensity_values=INTENSITY_VALUES
+):
     """
     generate all possible matches for LUT of [0,255]
     returns:
     - reflectance index [1,12] for the checks adjacent to match
     - 256 bmps with match intensities on constant surround
     """
-    resolution = 24
-    n_checks = 5
-    center_size = 50
-    intensity_values = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
-
     # Generate variegated array
     surround_values, direct_surround = make_random_array(intensity_values, n_checks)
 
@@ -303,18 +299,15 @@ def export_matching_fields(
         array_to_image(match_stimulus, f"{filedir}/{filename}")
 
 
-def make_life_single_trial_matches(trl_nr):
+def make_life_single_trial_matches(
+    n_checks=5, center_size=50, resolution=24, intensity_values=INTENSITY_VALUES
+):
     """
     generate all possible matches for LUT of [0,255]
     returns:
     - reflectance index [1,12] for the checks adjacent to match
     - numpy array
     """
-    resolution = 24
-    n_checks = 5  # Marianne hatte 5 als Parameter
-    center_size = 50
-    # intensity_values = np.array([5,10,17,27,41,57,74,92,124,150,176,200])
-    intensity_values = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 202])
 
     ind = 0
     while ind < 1.0:
