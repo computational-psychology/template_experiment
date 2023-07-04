@@ -1,5 +1,5 @@
-import os
 import random
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
@@ -288,15 +288,15 @@ def export_matching_fields(
     center = np.ones((center_size, center_size))
 
     # Check that output dir exists
-    if not os.path.exists(filedir):
-        os.mkdir(filedir)
+    if not Path(filedir).exists():
+        Path(filedir).mkdir(parents=True, exist_ok=True)
 
     # Generate matching fields for range of intensities of center patch
     for intensity in intensity_values:
         match_stimulus = replace_image_part(surround, center * intensity, center_pos)
 
         filename = f"match_{intensity:03d}.bmp"
-        array_to_image(match_stimulus, f"{filedir}/{filename}")
+        array_to_image(match_stimulus, Path(filedir) / filename)
 
 
 def make_life_single_trial_matches(
@@ -376,23 +376,22 @@ def read_surround_checks(fname):
 
 
 if __name__ == "__main__":
-    fid = open("design/mm_1_matchsurr.txt", "w")
-    fid.write("b2\tc2\td2\td3\td4\tc4\tb4\tb3\n")
+    with Path("stimuli/match/trials_matchsurr.txt").open("w") as file:
+        file.write("b2\tc2\td2\td3\td4\tc4\tb4\tb3\n")
 
-    for trl_nr in np.arange(240):
-        match_surr = make_single_trial_matches(trl_nr)
-        # match_surr = read_surround_checks('stimuli/match/%03d_match_000' %trl_nr)
-        fid.write(
-            "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
-            % (
-                match_surr["b2"],
-                match_surr["c2"],
-                match_surr["d2"],
-                match_surr["d3"],
-                match_surr["d4"],
-                match_surr["c4"],
-                match_surr["b4"],
-                match_surr["b3"],
+        for trl_nr in np.arange(240):
+            match_surr = make_single_trial_matches(trl_nr)
+            # match_surr = read_surround_checks('stimuli/match/%03d_match_000' %trl_nr)
+            file.write(
+                "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
+                % (
+                    match_surr["b2"],
+                    match_surr["c2"],
+                    match_surr["d2"],
+                    match_surr["d3"],
+                    match_surr["d4"],
+                    match_surr["c4"],
+                    match_surr["b4"],
+                    match_surr["b3"],
+                )
             )
-        )
-    fid.close()
