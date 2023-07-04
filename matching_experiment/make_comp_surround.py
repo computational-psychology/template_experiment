@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
-from stimupy.utils import resize_array
+from stimupy.utils import array_to_image, resize_array
 
 INTENSITY_VALUES = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 202])
 # INTENSITY_VALUES = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
@@ -186,24 +186,6 @@ def replace_image_part(stimulus=None, replacement=None, position=None):
     return new_stimulus
 
 
-def array_to_image(stimulus_array=None, outfile_name=None, out_format="bmp"):
-    """
-    convert numpy array into image (default = '.bmp') in order to display it with vsg.vsgDrawImage
-    input:
-    ------
-    stimulus_array  -   numpy array
-    outfile_name    -   ''
-    out_format      -   'bmp' (default) or 'png'
-    output:
-    -------
-    image           -   outfile_name.out_format
-    """
-    im_row, im_col = stimulus_array.shape
-    im_new = Image.new("L", (im_col, im_row))
-    im_new.putdata(stimulus_array.flatten())
-    im_new.save(f"{outfile_name}.{out_format}", format=out_format)
-
-
 def image_to_array(fname, in_format="png"):
     """
     read specified image file (default: png), converts it to grayscale and into numpy array
@@ -296,7 +278,7 @@ def export_matching_fields(
         match_stimulus = replace_image_part(surround, center * intensity, center_pos)
 
         filename = f"match_{intensity:03d}.bmp"
-        array_to_image(match_stimulus, Path(filedir) / filename)
+        array_to_image(match_stimulus, Path(filedir) / filename, norm=False)
 
 
 def make_life_single_trial_matches(
