@@ -10,6 +10,21 @@ INTENSITY_VALUES = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 
 # INTENSITY_VALUES = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
 
 
+def matching_field(variegated_array, resolution, field_size, field_intensity, field_pos=None):
+    # Draw at full resolution
+    surround = resize_array(variegated_array, factor=(resolution, resolution))
+
+    # Generate matching field
+    if not field_pos:
+        field_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
+    field = np.ones((field_size, field_size)) * field_intensity
+
+    # Draw
+    match_stimulus = replace_image_part(surround, field, field_pos)
+
+    return match_stimulus
+
+
 def replace_image_part(stimulus=None, replacement=None, position=None):
     """
     :Input:
@@ -35,21 +50,6 @@ def replace_image_part(stimulus=None, replacement=None, position=None):
         for l, r in enumerate(range(y1, y2)):
             new_stimulus[r, c] = replacement[l, k]
     return new_stimulus
-
-
-def matching_field(variegated_array, resolution, field_size, field_intensity, field_pos=None):
-    # Draw at full resolution
-    surround = resize_array(variegated_array, factor=(resolution, resolution))
-
-    # Generate matching field
-    if not field_pos:
-        field_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
-    field = np.ones((field_size, field_size)) * field_intensity
-
-    # Draw
-    match_stimulus = replace_image_part(surround, field, field_pos)
-
-    return match_stimulus
 
 
 def load_variegated_array(filename="matchsurround.txt"):
@@ -103,7 +103,7 @@ def export_matching_fields(filedir, matching_fields):
         array_to_image(matching_field, Path(filedir) / filename, norm=False)
 
 
-def read_surround_checks(fname):
+def direct_surround_from_image(fname):
     """
     read out surround indices for matches which were not saved upon generation
     """
