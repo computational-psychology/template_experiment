@@ -222,8 +222,9 @@ def image_to_array(fname, in_format="png"):
 def make_life_matches(trl_nr):
     center_size = 50
     resolution = 24
+    intensity_values = np.arange(256)
 
-    # Load matching field from file
+    # Load variegated array from file
     surround_values = np.fromtxt("matchsurround.txt")
 
     # Permutate: flip surround, possibly multiple directions
@@ -232,22 +233,22 @@ def make_life_matches(trl_nr):
     if random.choice((True, False)):
         surround_values = np.flipud(surround_values)
 
-    # Resize to full resolution
+    # Draw at full resolution
     surround = resize_array(surround_values, (resolution, resolution))
 
-    pos = np.round(surround.shape[0] / 2) - 1
+    # Generate center patch
+    if not center_pos:
+        center_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
+    center = np.ones((center_size, center_size))
 
+    # Generate matching fields for range of intensities of center patch
     matches = {}
+    for intensity in intensity_values:
+        matches[intensity] = replace_image_part(surround, center * intensity, center_pos)
 
-    # modify match intensity on constant surround
-    for center_int in np.arange(256):
-        center = np.ones((center_size, center_size)) * center_int
-        matches[center_int] = replace_image_part(surround, center, (pos, pos))
-
-    # returns an extra image where the center target region has -1
-    # in that way we can easily replace the values with the actual match value
-    center = np.ones((center_size, center_size)) * -1
-    matches[-1] = replace_image_part(surround, center, (pos, pos))
+    # Add an extra array where the center target region has value=-1
+    # so that we easily replace the values with the actual match value
+    matches[-1] = replace_image_part(surround, center * -1, center_pos)
 
     return matches, surround_values
 
@@ -262,10 +263,10 @@ def make_single_trial_matches(trl_nr):
     resolution = 24
     n_checks = 5
     center_size = 50
-    gray_values = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
+    intensity_values = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
 
     # Generate variegated array
-    surround_values, direct_surround = make_random_array(gray_values, n_checks)
+    surround_values, direct_surround = make_random_array(intensity_values, n_checks)
 
     # Draw at full resolution
     surround = resize_array(surround_values, factor=(resolution, resolution))
@@ -273,14 +274,17 @@ def make_single_trial_matches(trl_nr):
     # Generate files for all possible matching fields
     filedir = f"stimuli/match/trl_{trl_nr:03d}"
     export_matching_fields(
-        surround=surround, filedir=filedir, center_size=center_size, intensity_range=np.arange(256)
+        surround=surround,
+        filedir=filedir,
+        center_size=center_size,
+        intensity_values=np.arange(256),
     )
 
     return direct_surround
 
 
 def export_matching_fields(
-    surround, filedir, center_size, intensity_range=np.arange(256), center_pos=None
+    surround, filedir, center_size, intensity_values=np.arange(256), center_pos=None
 ):
     # Generate center patch
     if not center_pos:
@@ -291,8 +295,8 @@ def export_matching_fields(
     if not os.path.exists(filedir):
         os.mkdir(filedir)
 
-    # Generate matching fields for range of intensities
-    for intensity in intensity_range:
+    # Generate matching fields for range of intensities of center patch
+    for intensity in intensity_values:
         match_stimulus = replace_image_part(surround, center * intensity, center_pos)
 
         filename = f"match_{intensity:03d}.bmp"
@@ -309,12 +313,14 @@ def make_life_single_trial_matches(trl_nr):
     resolution = 24
     n_checks = 5  # Marianne hatte 5 als Parameter
     center_size = 50
+    # intensity_values = np.array([5,10,17,27,41,57,74,92,124,150,176,200])
+    intensity_values = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 202])
+
     ind = 0
-    # gray_values = np.array([5,10,17,27,41,57,74,92,124,150,176,200])
-    gray_values = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 202])
     while ind < 1.0:
-        surround_values, direct_surround = make_random_array(gray_values, n_checks)
+        surround_values, direct_surround = make_random_array(intensity_values, n_checks)
         surround_values = check_match_surrounds(surround_values)
+
         # the center check should not add to the mean, therefore it is replaced by the mean
         adj_surr = np.array(
             (
@@ -328,11 +334,11 @@ def make_life_single_trial_matches(trl_nr):
                 surround_values[3, 3],
             )
         )
-        surround_values[2, 2] = round(np.mean(gray_values))
+        surround_values[2, 2] = round(np.mean(intensity_values))
         match_mean = round(np.mean(surround_values))
         surround_mean = round(np.mean(adj_surr))
-        if match_mean == round(np.mean(gray_values)) and surround_mean == round(
-            np.mean(gray_values)
+        if match_mean == round(np.mean(intensity_values)) and surround_mean == round(
+            np.mean(intensity_values)
         ):
             ind = 1
         if ind == 1:
