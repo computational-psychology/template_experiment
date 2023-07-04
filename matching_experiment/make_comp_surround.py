@@ -1,9 +1,11 @@
+import copy
 import random
 from pathlib import Path
 
 import numpy as np
+import stimupy
 from PIL import Image
-from stimupy.utils import array_to_image, resize_array
+from stimupy.utils import array_to_image
 from variegate import generate_variegated_array
 
 INTENSITY_VALUES = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 202])
@@ -11,18 +13,30 @@ INTENSITY_VALUES = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 
 
 
 def matching_field(variegated_array, resolution, field_size, field_intensity, field_pos=None):
-    # Draw at full resolution
-    surround = resize_array(variegated_array, factor=(resolution, resolution))
+    board_shape = variegated_array.shape
+    check_visual_size = (1, 1)
 
-    # Generate matching field
-    if not field_pos:
-        field_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
-    field = np.ones((field_size, field_size)) * field_intensity
+    # Generate checkerboard
+    checkerboard = stimupy.checkerboards.checkerboard(
+        board_shape=board_shape, check_visual_size=check_visual_size, ppd=resolution
+    )
 
-    # Draw
-    match_stimulus = replace_image_part(surround, field, field_pos)
+    # Apply variegation
+    checkerboard["img"] = stimupy.components.draw_regions(
+        checkerboard["checker_mask"], intensities=variegated_array.flatten() / 255.0
+    )
 
-    return match_stimulus
+    # Overlay matching field
+    field = stimupy.components.shapes.rectangle(
+        visual_size=checkerboard["visual_size"],
+        ppd=resolution,
+        rectangle_size=field_size,
+        intensity_rectangle=field_intensity,
+    )
+    combined = copy.deepcopy(checkerboard)
+    combined["field_mask"] = field["rectangle_mask"]
+    combined["img"] = np.where(combined["field_mask"], field["img"], checkerboard["img"])
+    return combined["img"]
 
 
 def replace_image_part(stimulus=None, replacement=None, position=None):
@@ -100,7 +114,7 @@ def export_matching_fields(filedir, matching_fields):
     # Export
     for intensity, matching_field in matching_fields.items():
         filename = f"match_{intensity:03d}.bmp"
-        array_to_image(matching_field, Path(filedir) / filename, norm=False)
+        array_to_image(matching_field, Path(filedir) / filename, norm=True)
 
 
 def direct_surround_from_image(fname):
@@ -126,8 +140,8 @@ def direct_surround_from_image(fname):
 
 if __name__ == "__main__":
     n_checks = 5
-    field_size = 50
     resolution = 24
+    field_size = 50 / resolution
 
     with Path("stimuli/match/trials_matchsurr.txt").open("w") as file:
         file.write("b2\tc2\td2\td3\td4\tc4\tb4\tb3\n")
