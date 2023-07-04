@@ -106,7 +106,7 @@ def check_match_surrounds(surround_values):
     return surround_values
 
 
-def generate_variegated_array(values=np.array([]), n_checks=5):
+def generate_variegated_array(values=np.array([]), board_shape=(5, 5)):
     """
     return a side_length x side_length numpy array consisting of nr_int different values between min_in and max_int that are randomly arranged
     :input:
@@ -120,14 +120,14 @@ def generate_variegated_array(values=np.array([]), n_checks=5):
     """
 
     # Generate random array of indices
-    index = np.random.randint(0, len(values), n_checks * n_checks)
+    index = np.random.randint(0, len(values), board_shape[0] * board_shape[1])
 
     # Map indices to coordinates (e.g., d4)
-    a = map(chr, range(97, 97 + n_checks))
+    a = map(chr, range(97, 97 + board_shape[1]))
     coordinates = {}
     cnt = 0
     for letters in a:
-        for numbers in np.arange(1, 1 + n_checks):
+        for numbers in np.arange(1, 1 + board_shape[0]):
             coordinates[letters + str(numbers)] = index[cnt]
             cnt = cnt + 1
 
@@ -143,9 +143,9 @@ def generate_variegated_array(values=np.array([]), n_checks=5):
         coordinates[key] = direct_surround[idx]
 
     # Lookup intensities from indices at coordinates
-    surround_intensities = np.zeros((n_checks, n_checks))
-    for col, letters in enumerate(map(chr, range(97, 97 + n_checks))):
-        for row, numbers in enumerate(np.arange(1, 1 + n_checks)):
+    surround_intensities = np.zeros(shape=board_shape)
+    for col, letters in enumerate(map(chr, range(97, 97 + board_shape[1]))):
+        for row, numbers in enumerate(np.arange(1, 1 + board_shape[0])):
             surround_intensities[row, col] = values[coordinates[letters + str(numbers)]]
 
     # Sub-dict for immediate surround only
@@ -153,7 +153,8 @@ def generate_variegated_array(values=np.array([]), n_checks=5):
 
     return surround_intensities, direct_surround_dict
 
-def generate_variegated_array2(intensity_values=INTENSITY_VALUES, n_checks=5):
+
+def generate_variegated_array2(intensity_values=INTENSITY_VALUES, board_shape=(5, 5)):
     """
     Also checks that the mean of the overall array,
     as well as the mean of the immediate surround,
@@ -162,7 +163,7 @@ def generate_variegated_array2(intensity_values=INTENSITY_VALUES, n_checks=5):
 
     valid = False
     while not valid:
-        surround_values, direct_surround = generate_variegated_array(intensity_values, n_checks)
+        surround_values, direct_surround = generate_variegated_array(intensity_values, board_shape)
         surround_values = check_match_surrounds(surround_values)
 
         # the center check should not add to the mean, therefore it is replaced by the mean
@@ -187,4 +188,3 @@ def generate_variegated_array2(intensity_values=INTENSITY_VALUES, n_checks=5):
             valid = True
 
     return surround_values
-
