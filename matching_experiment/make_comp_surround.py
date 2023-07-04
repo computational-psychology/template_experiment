@@ -397,24 +397,3 @@ if __name__ == "__main__":
             )
         )
     fid.close()
-
-
-#    resolution  = 24
-#    n_checks    = 5
-#    center_size = 50
-
-#    gray_values = np.array([5,10,17,27,41,57,74,92,124,150,176,200])
-
-#    center_int = gray_values[np.random.randint(0,12)]
-
-#    surround_values, direct_surround = make_random_array(gray_values, n_checks)
-
-## draw to scale
-#    surround = resize_array(surround_values, (resolution, resolution))
-
-#    pos = np.round(surround.shape[0]/2)-1
-
-#    center = np.ones((center_size, center_size)) * center_int
-#    match_stimulus = replace_image_part(surround, center, (pos, pos))
-
-#    array_to_image(match_stimulus, 'test_surround', 'bmp')
