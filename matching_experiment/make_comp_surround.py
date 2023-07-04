@@ -70,11 +70,9 @@ def image_to_array(fname, in_format="png"):
     return im_matrix
 
 
-def make_life_matches(
-    field_size=50, resolution=24, intensity_values=np.arange(256), field_pos=None
-):
+def load_variegated_array(filename="matchsurround.txt"):
     # Load variegated array from file
-    variegated_array = np.fromtxt("matchsurround.txt")
+    variegated_array = np.fromtxt(Path(filename))
 
     # Permutate: flip surround, possibly multiple directions
     if random.choice((True, False)):
@@ -82,6 +80,12 @@ def make_life_matches(
     if random.choice((True, False)):
         variegated_array = np.flipud(variegated_array)
 
+    return variegated_array
+
+
+def gen_matching_fields_range(
+    intensity_values, variegated_array, field_size, resolution, field_pos=None
+):
     # Generate matching fields for range of intensities of center patch
     matches = {}
     for intensity in intensity_values:
@@ -103,7 +107,7 @@ def make_life_matches(
         field_pos=field_pos,
     )
 
-    return matches, variegated_array
+    return matches
 
 
 def export_matching_fields(
