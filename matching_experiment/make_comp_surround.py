@@ -52,24 +52,6 @@ def matching_field(variegated_array, resolution, field_size, field_intensity, fi
     return match_stimulus
 
 
-def image_to_array(fname, in_format="png"):
-    """
-    read specified image file (default: png), converts it to grayscale and into numpy array
-    input:
-    ------
-    fname       - name of image file
-    in_format   - extension (png default)
-    output:
-    -------
-    numpy array
-    """
-    im = Image.open(f"{fname}.{in_format}").convert("L")
-    im_matrix = [im.getpixel((y, x)) for x in range(im.size[1]) for y in range(im.size[0])]
-    im_matrix = np.array(im_matrix).reshape(im.size[1], im.size[0])
-
-    return im_matrix
-
-
 def load_variegated_array(filename="matchsurround.txt"):
     # Load variegated array from file
     variegated_array = np.fromtxt(Path(filename))
@@ -135,7 +117,7 @@ def read_surround_checks(fname):
         "b4": (90, 30),
         "b3": (60, 30),
     }
-    curr_stim = image_to_array(fname, "bmp")
+    curr_stim = np.array(Image.open(fname).convert("L"))
     direct_surround_dict = {}
     for key, pos in surround_pos.iteritems():
         direct_surround_dict[key] = curr_stim[pos[0], pos[1]]
