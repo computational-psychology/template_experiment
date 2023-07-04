@@ -185,6 +185,21 @@ def replace_image_part(stimulus=None, replacement=None, position=None):
     return new_stimulus
 
 
+def matching_field(variegated_array, resolution, field_size, field_intensity, field_pos=None):
+    # Draw at full resolution
+    surround = resize_array(variegated_array, factor=(resolution, resolution))
+
+    # Generate matching field
+    if not field_pos:
+        field_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
+    field = np.ones((field_size, field_size)) * field_intensity
+
+    # Draw
+    match_stimulus = replace_image_part(surround, field, field_pos)
+
+    return match_stimulus
+
+
 def image_to_array(fname, in_format="png"):
     """
     read specified image file (default: png), converts it to grayscale and into numpy array
@@ -203,38 +218,44 @@ def image_to_array(fname, in_format="png"):
     return im_matrix
 
 
-def make_life_matches(center_size=50, resolution=24, intensity_values=np.arange(256)):
+def make_life_matches(
+    field_size=50, resolution=24, intensity_values=np.arange(256), field_pos=None
+):
     # Load variegated array from file
-    surround_values = np.fromtxt("matchsurround.txt")
+    variegated_array = np.fromtxt("matchsurround.txt")
 
     # Permutate: flip surround, possibly multiple directions
     if random.choice((True, False)):
-        surround_values = np.fliplr(surround_values)
+        variegated_array = np.fliplr(variegated_array)
     if random.choice((True, False)):
-        surround_values = np.flipud(surround_values)
-
-    # Draw at full resolution
-    surround = resize_array(surround_values, (resolution, resolution))
-
-    # Generate center patch
-    if not center_pos:
-        center_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
-    center = np.ones((center_size, center_size))
+        variegated_array = np.flipud(variegated_array)
 
     # Generate matching fields for range of intensities of center patch
     matches = {}
     for intensity in intensity_values:
-        matches[intensity] = replace_image_part(surround, center * intensity, center_pos)
+        matches[intensity] = matching_field(
+            variegated_array=variegated_array,
+            resolution=resolution,
+            field_size=field_size,
+            field_intensity=intensity,
+            field_pos=field_pos,
+        )
 
     # Add an extra array where the center target region has value=-1
     # so that we easily replace the values with the actual match value
-    matches[-1] = replace_image_part(surround, center * -1, center_pos)
+    matches[-1] = matching_field(
+        variegated_array=variegated_array,
+        resolution=resolution,
+        field_size=field_size,
+        field_intensity=-1,
+        field_pos=field_pos,
+    )
 
-    return matches, surround_values
+    return matches, variegated_array
 
 
 def make_single_trial_matches(
-    trl_nr, n_checks=5, center_size=50, resolution=24, intensity_values=INTENSITY_VALUES
+    trl_nr, n_checks=5, field_size=50, resolution=24, intensity_values=INTENSITY_VALUES
 ):
     """
     generate all possible matches for LUT of [0,255]
@@ -247,15 +268,13 @@ def make_single_trial_matches(
         intensity_values=intensity_values, n_checks=n_checks
     )
 
-    # Draw at full resolution
-    surround = resize_array(surround_values, factor=(resolution, resolution))
-
     # Generate files for all possible matching fields
     filedir = f"stimuli/match/trl_{trl_nr:03d}"
     export_matching_fields(
-        surround=surround,
         filedir=filedir,
-        center_size=center_size,
+        variegated_array=surround_values,
+        field_size=field_size,
+        resolution=resolution,
         intensity_values=np.arange(256),
     )
 
@@ -263,20 +282,26 @@ def make_single_trial_matches(
 
 
 def export_matching_fields(
-    surround, filedir, center_size, intensity_values=np.arange(256), center_pos=None
+    filedir,
+    variegated_array,
+    field_size,
+    resolution,
+    intensity_values=np.arange(256),
+    field_pos=None,
 ):
-    # Generate center patch
-    if not center_pos:
-        center_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
-    center = np.ones((center_size, center_size))
-
     # Check that output dir exists
     if not Path(filedir).exists():
         Path(filedir).mkdir(parents=True, exist_ok=True)
 
     # Generate matching fields for range of intensities of center patch
     for intensity in intensity_values:
-        match_stimulus = replace_image_part(surround, center * intensity, center_pos)
+        match_stimulus = matching_field(
+            variegated_array=variegated_array,
+            resolution=resolution,
+            field_size=field_size,
+            field_intensity=intensity,
+            field_pos=field_pos,
+        )
 
         filename = f"match_{intensity:03d}.bmp"
         array_to_image(match_stimulus, Path(filedir) / filename, norm=False)
