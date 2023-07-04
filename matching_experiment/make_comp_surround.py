@@ -110,7 +110,7 @@ def check_match_surrounds(surround_values):
     return surround_values
 
 
-def make_random_array(values=np.array([]), n_checks=5):
+def generate_variegated_array(values=np.array([]), n_checks=5):
     """
     return a side_length x side_length numpy array consisting of nr_int different values between min_in and max_int that are randomly arranged
     :input:
@@ -123,40 +123,39 @@ def make_random_array(values=np.array([]), n_checks=5):
     numpy array
     """
 
+    # Generate random array of indices
     index = np.random.randint(0, len(values), n_checks * n_checks)
 
+    # Map indices to coordinates (e.g., d4)
     a = map(chr, range(97, 97 + n_checks))
-
-    positions = {}
+    coordinates = {}
     cnt = 0
-    ## create dictionary with coordinate (e.g. d4):index pairs
     for letters in a:
         for numbers in np.arange(1, 1 + n_checks):
-            positions[letters + str(numbers)] = index[cnt]
+            coordinates[letters + str(numbers)] = index[cnt]
             cnt = cnt + 1
 
-    surround_checks = ["b2", "c2", "d2", "d3", "d4", "c4", "b4", "b3"]
+    # Extract direct surround indices
+    key_direct_surround = ["b2", "c2", "d2", "d3", "d4", "c4", "b4", "b3"]
+    direct_surround = []
+    for key in key_direct_surround:
+        direct_surround.append(coordinates[key])
 
-    ## read gray values at surround positions from position dictionary
-    surround_int = []
-    for surr_name in surround_checks:
-        surround_int.append(positions[surr_name])
+    # Check that no two identical gray values are next to each other
+    direct_surround = position_constraint(np.array(direct_surround))
+    for idx, key in enumerate(key_direct_surround):
+        coordinates[key] = direct_surround[idx]
 
-    ## check that no two identical gray values are next to each other
-    surround_control = position_constraint(np.array(surround_int))
-
-    surround_control_dict = {}
-    for idx, surr_name in enumerate(surround_checks):
-        positions[surr_name] = surround_control[idx]
-        ## sub dictionary for immediate surround only
-        surround_control_dict[surr_name] = surround_control[idx]
-
-    out = np.zeros((n_checks, n_checks))
-
-    for col, letters in enumerate(a):
+    # Lookup intensities from indices at coordinates
+    surround_intensities = np.zeros((n_checks, n_checks))
+    for col, letters in enumerate(map(chr, range(97, 97 + n_checks))):
         for row, numbers in enumerate(np.arange(1, 1 + n_checks)):
-            out[row, col] = values[positions[letters + str(numbers)]]
-    return out, surround_control_dict
+            surround_intensities[row, col] = values[coordinates[letters + str(numbers)]]
+
+    # Sub-dict for immediate surround only
+    direct_surround_dict = {key: coordinates[key] for key in key_direct_surround}
+
+    return surround_intensities, direct_surround_dict
 
 
 def replace_image_part(stimulus=None, replacement=None, position=None):
@@ -244,7 +243,9 @@ def make_single_trial_matches(
     - 256 bmps with match intensities on constant surround
     """
     # Generate variegated array
-    surround_values, direct_surround = make_random_array(intensity_values, n_checks)
+    surround_values, direct_surround_dict = generate_variegated_array2(
+        intensity_values=intensity_values, n_checks=n_checks
+    )
 
     # Draw at full resolution
     surround = resize_array(surround_values, factor=(resolution, resolution))
@@ -258,7 +259,7 @@ def make_single_trial_matches(
         intensity_values=np.arange(256),
     )
 
-    return direct_surround
+    return direct_surround_dict
 
 
 def export_matching_fields(
@@ -281,19 +282,16 @@ def export_matching_fields(
         array_to_image(match_stimulus, Path(filedir) / filename, norm=False)
 
 
-def make_life_single_trial_matches(
-    n_checks=5, center_size=50, resolution=24, intensity_values=INTENSITY_VALUES
-):
+def generate_variegated_array2(intensity_values=INTENSITY_VALUES, n_checks=5):
     """
-    generate all possible matches for LUT of [0,255]
-    returns:
-    - reflectance index [1,12] for the checks adjacent to match
-    - numpy array
+    Also checks that the mean of the overall array,
+    as well as the mean of the immediate surround,
+    is (approx.) equal to the mean of the given intensity values
     """
 
-    ind = 0
-    while ind < 1.0:
-        surround_values, direct_surround = make_random_array(intensity_values, n_checks)
+    valid = False
+    while not valid:
+        surround_values, direct_surround = generate_variegated_array(intensity_values, n_checks)
         surround_values = check_match_surrounds(surround_values)
 
         # the center check should not add to the mean, therefore it is replaced by the mean
@@ -315,25 +313,9 @@ def make_life_single_trial_matches(
         if match_mean == round(np.mean(intensity_values)) and surround_mean == round(
             np.mean(intensity_values)
         ):
-            ind = 1
-        if ind == 1:
-            break
+            valid = True
 
     return surround_values
-    # surround_values = check_match_surrounds(surround_values)
-
-    ## draw to scale
-    surround = resize_array(surround_values, (resolution, resolution))
-
-    pos = np.round(surround.shape[0] / 2) - 1
-
-    matches = {}
-
-    ## modify match intensity on constant surround
-    for center_int in np.arange(256):
-        center = np.ones((center_size, center_size)) * center_int
-        matches[center_int] = replace_image_part(surround, center, (pos, pos))
-    return matches, direct_surround, surround_values
 
 
 def read_surround_checks(fname):
@@ -351,10 +333,10 @@ def read_surround_checks(fname):
         "b3": (60, 30),
     }
     curr_stim = image_to_array(fname, "bmp")
-    direct_surround = {}
-    for idx, pos in surround_pos.iteritems():
-        direct_surround[idx] = curr_stim[pos[0], pos[1]]
-    return direct_surround
+    direct_surround_dict = {}
+    for key, pos in surround_pos.iteritems():
+        direct_surround_dict[key] = curr_stim[pos[0], pos[1]]
+    return direct_surround_dict
 
 
 if __name__ == "__main__":
@@ -362,18 +344,18 @@ if __name__ == "__main__":
         file.write("b2\tc2\td2\td3\td4\tc4\tb4\tb3\n")
 
         for trl_nr in np.arange(240):
-            match_surr = make_single_trial_matches(trl_nr)
+            direct_surround_dict = make_single_trial_matches(trl_nr)
             # match_surr = read_surround_checks('stimuli/match/%03d_match_000' %trl_nr)
             file.write(
                 "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
                 % (
-                    match_surr["b2"],
-                    match_surr["c2"],
-                    match_surr["d2"],
-                    match_surr["d3"],
-                    match_surr["d4"],
-                    match_surr["c4"],
-                    match_surr["b4"],
-                    match_surr["b3"],
+                    direct_surround_dict["b2"],
+                    direct_surround_dict["c2"],
+                    direct_surround_dict["d2"],
+                    direct_surround_dict["d3"],
+                    direct_surround_dict["d4"],
+                    direct_surround_dict["c4"],
+                    direct_surround_dict["b4"],
+                    direct_surround_dict["b3"],
                 )
             )
