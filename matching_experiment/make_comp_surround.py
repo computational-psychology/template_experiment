@@ -254,33 +254,6 @@ def make_life_matches(
     return matches, variegated_array
 
 
-def make_single_trial_matches(
-    trl_nr, n_checks=5, field_size=50, resolution=24, intensity_values=INTENSITY_VALUES
-):
-    """
-    generate all possible matches for LUT of [0,255]
-    returns:
-    - reflectance index [1,12] for the checks adjacent to match
-    - 256 bmps with match intensities on constant surround
-    """
-    # Generate variegated array
-    surround_values, direct_surround_dict = generate_variegated_array2(
-        intensity_values=intensity_values, n_checks=n_checks
-    )
-
-    # Generate files for all possible matching fields
-    filedir = f"stimuli/match/trl_{trl_nr:03d}"
-    export_matching_fields(
-        filedir=filedir,
-        variegated_array=surround_values,
-        field_size=field_size,
-        resolution=resolution,
-        intensity_values=np.arange(256),
-    )
-
-    return direct_surround_dict
-
-
 def export_matching_fields(
     filedir,
     variegated_array,
@@ -365,12 +338,29 @@ def read_surround_checks(fname):
 
 
 if __name__ == "__main__":
+    n_checks = 5
+    field_size = 50
+    resolution = 24
+
     with Path("stimuli/match/trials_matchsurr.txt").open("w") as file:
         file.write("b2\tc2\td2\td3\td4\tc4\tb4\tb3\n")
 
         for trl_nr in np.arange(240):
-            direct_surround_dict = make_single_trial_matches(trl_nr)
-            # match_surr = read_surround_checks('stimuli/match/%03d_match_000' %trl_nr)
+            # Generate variegated array
+            surround_values, direct_surround_dict = generate_variegated_array(
+                INTENSITY_VALUES, n_checks
+            )
+
+            # Generate files for all possible matching fields
+            filedir = f"stimuli/match/trl_{trl_nr:03d}"
+            export_matching_fields(
+                filedir=filedir,
+                variegated_array=surround_values,
+                field_size=field_size,
+                resolution=resolution,
+                intensity_values=np.arange(256),
+            )
+
             file.write(
                 "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
                 % (
