@@ -262,28 +262,41 @@ def make_single_trial_matches(trl_nr):
     resolution = 24
     n_checks = 5
     center_size = 50
-
     gray_values = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
 
+    # Generate variegated array
     surround_values, direct_surround = make_random_array(gray_values, n_checks)
 
-    ## draw to scale
+    # Draw at full resolution
     surround = resize_array(surround_values, factor=(resolution, resolution))
 
-    pos = np.round(surround.shape[0] / 2) - 1
+    # Generate files for all possible matching fields
+    filedir = f"stimuli/match/trl_{trl_nr:03d}"
+    export_matching_fields(
+        surround=surround, filedir=filedir, center_size=center_size, intensity_range=np.arange(256)
+    )
 
-    if not os.path.exists("stimuli/match/trl_%03d" % trl_nr):
-        os.mkdir("stimuli/match/trl_%03d" % trl_nr)
-
-    ## modify match intensity on constant surround
-    for center_int in np.arange(256):
-        center = np.ones((center_size, center_size)) * center_int
-        match_stimulus = replace_image_part(surround, center, (pos, pos))
-
-        array_to_image(
-            match_stimulus, "stimuli/match/trl_%03d/match_%03d" % (trl_nr, center_int), "bmp"
-        )
     return direct_surround
+
+
+def export_matching_fields(
+    surround, filedir, center_size, intensity_range=np.arange(256), center_pos=None
+):
+    # Generate center patch
+    if not center_pos:
+        center_pos = (surround.shape[0] // 2 - 1, surround.shape[1] // 2 - 1)
+    center = np.ones((center_size, center_size))
+
+    # Check that output dir exists
+    if not os.path.exists(filedir):
+        os.mkdir(filedir)
+
+    # Generate matching fields for range of intensities
+    for intensity in intensity_range:
+        match_stimulus = replace_image_part(surround, center * intensity, center_pos)
+
+        filename = f"match_{intensity:03d}.bmp"
+        array_to_image(match_stimulus, f"{filedir}/{filename}")
 
 
 def make_life_single_trial_matches(trl_nr):
