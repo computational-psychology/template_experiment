@@ -1,20 +1,51 @@
 import copy
 import random
+import warnings
 from pathlib import Path
 
 import numpy as np
 import stimupy
 from PIL import Image
-from stimupy.utils import array_to_image
 from variegate import generate_variegated_array
 
 INTENSITY_VALUES = np.array([5, 10, 17, 27, 42, 57, 75, 96, 118, 137, 152, 178, 202])
 # INTENSITY_VALUES = np.array([5, 10, 17, 27, 41, 57, 74, 92, 124, 150, 176, 200])
 
 
-def matching_field(variegated_array, ppd, field_size, field_intensity, field_pos=None):
+def matching_field(
+    variegated_array,
+    ppd,
+    field_size,
+    field_intensity=0.5,
+    check_visual_size=(1, 1),
+    field_position=None,
+):
+    """Produce matching field stimulus: patch on variegated checkerboard
+
+    Parameters
+    ----------
+    variegated_array : numpy.ndarray
+        array of intensity values to use for checkerboard, one per check
+    ppd : Sequence[Number, Number], Number, or None (default)
+        pixels per degree (vertical, horizontal)
+    field_size : Sequence[Number, Number], Number, or None (default)
+        visual size of matching patch (height, width) in degrees visual angle
+    field_intensity : Number
+        intensity value of matching patch, by default .5
+    check_visual_size : Sequence[Number, Number], Number, or None (default)
+        visual size of a single check (height, width) in degrees visual angle, by default (1, 1)
+    field_position : Number, Sequence[Number, Number], or None (default)
+        position of the patch (relative to checkerboard), in degrees visual angle.
+        If None, patch will be placed in center of image.
+
+    Returns
+    -------
+    dict[str: Any]
+        dict with the stimulus (key: "img"),
+        mask with integer index for the shape (key: "field_mask"),
+        and additional keys containing stimulus parameters
+    """
     board_shape = variegated_array.shape
-    check_visual_size = (1, 1)
 
     # Generate checkerboard
     checkerboard = stimupy.checkerboards.checkerboard(
@@ -32,14 +63,29 @@ def matching_field(variegated_array, ppd, field_size, field_intensity, field_pos
         ppd=ppd,
         rectangle_size=field_size,
         intensity_rectangle=field_intensity,
+        rectangle_position=field_position,
     )
     combined = copy.deepcopy(checkerboard)
     combined["field_mask"] = field["rectangle_mask"]
     combined["img"] = np.where(combined["field_mask"], field["img"], checkerboard["img"])
+    combined["variegated_array"] = copy.deepcopye(variegated_array)
+
     return combined
 
 
 def load_variegated_array(filename="matchsurround.txt"):
+    """Load (variegated) array from file, and randomly flip/rotate
+
+    Parameters
+    ----------
+    filename : Path or str
+        (full) path to txt-file to load array from, by default "matchsurround.txt"
+
+    Returns
+    -------
+    numpy.ndarray
+        loaded and flipped/rotated array
+    """
     # Load variegated array from file
     variegated_array = np.fromtxt(Path(filename))
 
@@ -52,14 +98,56 @@ def load_variegated_array(filename="matchsurround.txt"):
     return variegated_array
 
 
-def gen_matching_fields_range(intensity_values, variegated_array, field_size, ppd, field_pos=None):
+### ---------------------------------------------------------------- ###
+##                          UNUSED FUNCTIONS                         ##
+### -------------------------------------------------------------- ###
+def gen_matching_fields_range(
+    variegated_array,
+    ppd,
+    field_size,
+    check_visual_size=(1, 1),
+    intensity_values=np.linspace(0, 1, 256),
+    field_position=None,
+):
+    """Generate matching field stimuli for a range of intensity values
+
+    Parameters
+    ----------
+    variegated_array : numpy.ndarray
+        array of intensity values to use for checkerboard, one per check
+    ppd : Sequence[Number, Number], Number, or None
+        pixels per degree (vertical, horizontal)
+    field_size : Sequence[Number, Number], Number, or None
+        visual size of matching patch (height, width) in degrees visual angle
+    check_visual_size : Sequence[Number, Number], Number, or None (default)
+        visual size of a single check (height, width) in degrees visual angle, by default (1, 1)
+    intensity_values : Sequence[float]
+        intensity values for matching patch to generate, by default 256 linear spaced values [0, 1]
+    field_position : Number, Sequence[Number, Number], or None (default)
+        position of the patch (relative to checkerboard), in degrees visual angle.
+        If None, patch will be placed in center of image.
+
+    Returns
+    -------
+    dict[float: dict]
+        dict mapping each intensity value to a matching stimulus with that field intensity
+
+    See also
+    --------
+        export_matching_fields
+    """
+    warnings.warn(
+        "This function has been deprecated, and should no longer be used. [2023]",
+        DeprecationWarning,
+    )
     # Base matching field
     field = matching_field(
         variegated_array=variegated_array,
         ppd=ppd,
         field_size=field_size,
         field_intensity=0,
-        field_pos=field_pos,
+        field_position=field_position,
+        check_visual_size=check_visual_size,
     )
 
     # Generate matching fields for range of intensities of center patch
@@ -72,7 +160,27 @@ def gen_matching_fields_range(intensity_values, variegated_array, field_size, pp
     return matches
 
 
-def export_matching_fields(filedir, matching_fields):
+def matching_fields_to_images(filedir, matching_fields):
+    """Save matching field stimuli to `.bmp` files
+
+    Files will be named `"match_<intensity>.bmp"`,
+    where `<intensity>` is formatted with 3 post-decimal digits, e.g., `.003`
+
+    Parameters
+    ----------
+    filedir : Path or str
+        (full) Path to directory to save `.bmp` files in
+    matching_fields : dict[float: dict]
+        dict mapping intensity value to a matching stimulus with that field intensity
+
+    See also
+    --------
+        gen_matching_fields_range
+    """
+    warnings.warn(
+        "This function has been deprecated, and should no longer be used. [2023]",
+        DeprecationWarning,
+    )
     # Check that output dir exists
     if not Path(filedir).exists():
         Path(filedir).mkdir(parents=True, exist_ok=True)
@@ -80,13 +188,29 @@ def export_matching_fields(filedir, matching_fields):
     # Export
     for intensity, matching_field in matching_fields.items():
         filename = f"match_{intensity:.3f}.bmp"
-        array_to_image(matching_field["img"], Path(filedir) / filename, norm=True)
+        stimupy.utils.array_to_image(matching_field["img"], Path(filedir) / filename, norm=True)
 
 
-def direct_surround_from_image(fname):
+def direct_surround_from_image(filename):
+    """Read out surround intensity values from matching stimulus image file
+
+    Legacy function for matches which were not saved upon generation.
+    Assumes a (5, 5) checkerboard, with ppd=30 (?)
+
+    Parameters
+    ----------
+    filename : Path or str
+        (full) Path to image-file to read surround checks from
+
+    Returns
+    -------
+    dict[str: float]
+        dict mapping "coordinate" (e.g., `"c2"`) to intensity at that check
     """
-    read out surround indices for matches which were not saved upon generation
-    """
+    warnings.warn(
+        "This function has been deprecated, and should no longer be used. [2023]",
+        DeprecationWarning,
+    )
     surround_pos = {
         "b2": (30, 30),
         "c2": (30, 60),
@@ -97,7 +221,7 @@ def direct_surround_from_image(fname):
         "b4": (90, 30),
         "b3": (60, 30),
     }
-    curr_stim = np.array(Image.open(fname).convert("L"))
+    curr_stim = np.array(Image.open(filename).convert("L"))
     direct_surround_dict = {}
     for key, pos in surround_pos.iteritems():
         direct_surround_dict[key] = curr_stim[pos[0], pos[1]]
@@ -105,6 +229,10 @@ def direct_surround_from_image(fname):
 
 
 if __name__ == "__main__":
+    warnings.warn(
+        "Running this module as a script is deprecated, and should not be done [2023]",
+        DeprecationWarning,
+    )
     board_shape = (5, 5)
     ppd = 24
     field_size = 50 / ppd
@@ -124,12 +252,12 @@ if __name__ == "__main__":
                 variegated_array=surround_values,
                 field_size=field_size,
                 ppd=24,
-                field_pos=None,
+                field_position=None,
             )
 
             # Export matching fields
             filedir = f"stimuli/match/trl_{trl_nr:03d}"
-            export_matching_fields(
+            matching_fields_to_images(
                 filedir=filedir,
                 matching_fields=matching_fields,
             )
