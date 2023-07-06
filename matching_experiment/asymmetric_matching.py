@@ -87,7 +87,7 @@ def load_variegated_array(filename="matchsurround.txt"):
         loaded and flipped/rotated array
     """
     # Load variegated array from file
-    variegated_array = np.fromtxt(Path(filename))
+    variegated_array = np.loadtxt(Path(filename))
 
     # Permutate: flip surround, possibly multiple directions
     if random.choice((True, False)):
