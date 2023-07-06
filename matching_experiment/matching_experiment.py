@@ -17,8 +17,9 @@ import numpy as np
 import text_displays
 from helper_functions import image_to_array, read_design_csv
 from hrl import HRL
-from make_comp_surround import make_life_matches
 from stimuli import show_stimulus
+
+from matching_experiment.asymmetric_matching import make_life_matches
 
 inlab_siemens = "vlab" in gethostname()
 inlab_viewpixx = "viewpixx" in gethostname()
