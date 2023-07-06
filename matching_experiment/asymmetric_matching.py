@@ -73,29 +73,37 @@ def matching_field(
     return combined
 
 
-def load_variegated_array(filename="matchsurround.txt"):
-    """Load (variegated) array from file, and randomly flip/rotate
+def perturb_array(variegated_array, seed=0):
+    """Randomly flip/rotate a variegated array
+
+    "Randomizes" a variegated array, keeping the variegation intact.
 
     Parameters
     ----------
-    filename : Path or str
-        (full) path to txt-file to load array from, by default "matchsurround.txt"
+    variegated_array : numpy.ndarray
+        array to perturb
+    seed : int, optional
+        seed for the random generator, see `random.seed`, by default 0
 
     Returns
     -------
     numpy.ndarray
-        loaded and flipped/rotated array
+        perturbed copy of input array
     """
-    # Load variegated array from file
-    variegated_array = np.loadtxt(Path(filename))
+    random.seed(seed)
 
-    # Permutate: flip surround, possibly multiple directions
-    if random.choice((True, False)):
-        variegated_array = np.fliplr(variegated_array)
-    if random.choice((True, False)):
-        variegated_array = np.flipud(variegated_array)
+    perturbed_array = variegated_array.copy()
 
-    return variegated_array
+    # Flip
+    if random.choice((True, False)):
+        perturbed_array = np.fliplr(perturbed_array)
+    if random.choice((True, False)):
+        perturbed_array = np.flipud(perturbed_array)
+
+    # Rotate
+    perturbed_array = np.rot90(perturbed_array, k=random.choice((1, 2, 3)))
+
+    return perturbed_array
 
 
 ### ---------------------------------------------------------------- ###
