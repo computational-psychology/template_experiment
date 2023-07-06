@@ -68,7 +68,7 @@ def matching_field(
     combined = copy.deepcopy(checkerboard)
     combined["field_mask"] = field["rectangle_mask"]
     combined["img"] = np.where(combined["field_mask"], field["img"], checkerboard["img"])
-    combined["variegated_array"] = copy.deepcopye(variegated_array)
+    combined["variegated_array"] = copy.deepcopy(variegated_array)
 
     return combined
 
