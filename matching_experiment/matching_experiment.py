@@ -15,11 +15,10 @@ from socket import gethostname
 import adjustment
 import numpy as np
 import text_displays
+from asymmetric_matching import matching_field, perturb_array
 from helper_functions import image_to_array, read_design_csv
 from hrl import HRL
 from stimuli import show_stimulus
-
-from matching_experiment.asymmetric_matching import make_life_matches
 
 inlab_siemens = "vlab" in gethostname()
 inlab_viewpixx = "viewpixx" in gethostname()
@@ -62,12 +61,15 @@ else:
     HEIGHT = 768
     bg_blank = 0.27
 
+PPD = 32
 
 # big and small steps during adjustment
 STEP_SIZES = (0.02, 0.002)
 
+VARIEGATED_ARRAY = np.loadtxt("matchsurround.txt")
 
-def adjust_loop(ihrl, match_intensity, stimulus_texture, matching_field_img):
+
+def adjust_loop(ihrl, match_intensity, stimulus_texture, matching_field_stim):
     accept = False
     while not accept:
         match_intensity, accept = adjustment.adjust(
@@ -76,7 +78,7 @@ def adjust_loop(ihrl, match_intensity, stimulus_texture, matching_field_img):
         show_stimulus(
             ihrl=ihrl,
             stimulus_texture=stimulus_texture,
-            matching_field_img=matching_field_img,
+            matching_field_stim=matching_field_stim,
             match_intensity=match_intensity,
         )
 
@@ -131,27 +133,35 @@ def run_trial(ihrl, trial_idx, start_trial, end_trial):
     # texture creation in buffer : stimulus
     checkerboard_stimulus = ihrl.graphics.newTexture(stimulus_image)
 
-    # Generate matching field
-    trial_match, all_surround = make_life_matches(trial_idx)
-    # return the one with a -1 at the center patch, so we can easily replace this area later on
-    # print all_surround
-    matching_field = trial_match[-1] / 255.0
-
     # starting intensity of matching field: random between 0 and 1
     match_intensity_start = random.random()
+
+    # create matching field (variegated checkerboard)
+    variegated_array = perturb_array(VARIEGATED_ARRAY, seed=Trial)
+
+    matching_field_stim = matching_field(
+        variegated_array=variegated_array,
+        ppd=PPD,
+        field_size=(1, 1),
+        field_intensity=match_intensity_start,
+        check_visual_size=(0.5, 0.5),
+    )
 
     # Show stimulus (and matching field)
     t1 = time.time()
     show_stimulus(
         ihrl,
         stimulus_texture=checkerboard_stimulus,
-        matching_field_img=matching_field,
+        matching_field_stim=matching_field_stim,
         match_intensity=match_intensity_start,
     )
 
     # adjust the matching field intensity
     match_intensity = adjust_loop(
-        ihrl, match_intensity_start, checkerboard_stimulus, matching_field
+        ihrl,
+        stimulus_texture=checkerboard_stimulus,
+        matching_field_stim=matching_field_stim,
+        match_intensity=match_intensity_start,
     )
     t2 = time.time()
 
@@ -177,30 +187,30 @@ def run_trial(ihrl, trial_idx, start_trial, end_trial):
     fid_all_match.write(
         "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
         % (
-            all_surround[0, 0],
-            all_surround[0, 1],
-            all_surround[0, 2],
-            all_surround[0, 3],
-            all_surround[0, 4],
-            all_surround[1, 0],
-            all_surround[1, 1],
-            all_surround[1, 2],
-            all_surround[1, 3],
-            all_surround[1, 4],
-            all_surround[2, 0],
-            all_surround[2, 1],
-            all_surround[2, 3],
-            all_surround[2, 4],
-            all_surround[3, 0],
-            all_surround[3, 1],
-            all_surround[3, 2],
-            all_surround[3, 3],
-            all_surround[3, 4],
-            all_surround[4, 0],
-            all_surround[4, 1],
-            all_surround[4, 2],
-            all_surround[4, 3],
-            all_surround[4, 4],
+            variegated_array[0, 0],
+            variegated_array[0, 1],
+            variegated_array[0, 2],
+            variegated_array[0, 3],
+            variegated_array[0, 4],
+            variegated_array[1, 0],
+            variegated_array[1, 1],
+            variegated_array[1, 2],
+            variegated_array[1, 3],
+            variegated_array[1, 4],
+            variegated_array[2, 0],
+            variegated_array[2, 1],
+            variegated_array[2, 3],
+            variegated_array[2, 4],
+            variegated_array[3, 0],
+            variegated_array[3, 1],
+            variegated_array[3, 2],
+            variegated_array[3, 3],
+            variegated_array[3, 4],
+            variegated_array[4, 0],
+            variegated_array[4, 1],
+            variegated_array[4, 2],
+            variegated_array[4, 3],
+            variegated_array[4, 4],
         )
     )
     fid_all_match.flush()
