@@ -106,23 +106,10 @@ def get_last_trial(vp_id):
     return last_trl
 
 
-def run_trial(ihrl, trial_idx, start_trial, end_trial):
+def run_trial(ihrl, trial_idx, context, r, Trial, participant):
     # function written by Torsten and edited by Christiane, reused by GA
     # read out variable values for each trial from the design matrix
     print(f"TRIAL {trial_idx}: ")
-
-    # show break automatically, define after how many trials
-    if trial_idx > 0 and (trial_idx - start_trial) == (end_trial - start_trial) // 2:
-        text_displays.block_break(
-            ihrl, trial=(trial_idx - start_trial), total_trials=(end_trial - start_trial)
-        )
-
-    # get values from design matrix for current trial
-    context, r, Trial = (
-        design["context"][trial_idx],
-        float(design["r"][trial_idx]),
-        int(design["Trial"][trial_idx]),
-    )
 
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
     stim_name = f"stimuli/{participant}/{Trial}_{context}_{r:.2f}"
@@ -168,52 +155,52 @@ def run_trial(ihrl, trial_idx, start_trial, end_trial):
     resptime = t2 - t1
     timestamp = time.time()
 
-    rfl.write(
-        "%d\t%s\t%s\t%f\t%f\t%f\t%f\t%f\n"
-        % (
-            Trial,
-            context,
-            stim_name,
-            r,
-            match_intensity_start,
-            match_intensity,
-            resptime,
-            timestamp,
+    with open(f"results/{participant}/{participant}.txt", "a") as rfl:
+        rfl.write(
+            "%d\t%s\t%s\t%f\t%f\t%f\t%f\t%f\n"
+            % (
+                Trial,
+                context,
+                stim_name,
+                r,
+                match_intensity_start,
+                match_intensity,
+                resptime,
+                timestamp,
+            )
         )
-    )
-    rfl.flush()
 
     # surround information of matching patch should be written together with matched value
-    fid_all_match.write(
-        "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
-        % (
-            variegated_array[0, 0],
-            variegated_array[0, 1],
-            variegated_array[0, 2],
-            variegated_array[0, 3],
-            variegated_array[0, 4],
-            variegated_array[1, 0],
-            variegated_array[1, 1],
-            variegated_array[1, 2],
-            variegated_array[1, 3],
-            variegated_array[1, 4],
-            variegated_array[2, 0],
-            variegated_array[2, 1],
-            variegated_array[2, 3],
-            variegated_array[2, 4],
-            variegated_array[3, 0],
-            variegated_array[3, 1],
-            variegated_array[3, 2],
-            variegated_array[3, 3],
-            variegated_array[3, 4],
-            variegated_array[4, 0],
-            variegated_array[4, 1],
-            variegated_array[4, 2],
-            variegated_array[4, 3],
-            variegated_array[4, 4],
+    with open(f"results/{participant}/{participant}_all_match_surr.txt", "a") as fid_all_match:
+        fid_all_match.write(
+            "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
+            % (
+                variegated_array[0, 0],
+                variegated_array[0, 1],
+                variegated_array[0, 2],
+                variegated_array[0, 3],
+                variegated_array[0, 4],
+                variegated_array[1, 0],
+                variegated_array[1, 1],
+                variegated_array[1, 2],
+                variegated_array[1, 3],
+                variegated_array[1, 4],
+                variegated_array[2, 0],
+                variegated_array[2, 1],
+                variegated_array[2, 3],
+                variegated_array[2, 4],
+                variegated_array[3, 0],
+                variegated_array[3, 1],
+                variegated_array[3, 2],
+                variegated_array[3, 3],
+                variegated_array[3, 4],
+                variegated_array[4, 0],
+                variegated_array[4, 1],
+                variegated_array[4, 2],
+                variegated_array[4, 3],
+                variegated_array[4, 4],
+            )
         )
-    )
-    fid_all_match.flush()
 
     # screenshooting
     # gl.glReadBuffer(gl.GL_FRONT)
@@ -229,42 +216,59 @@ def run_trial(ihrl, trial_idx, start_trial, end_trial):
     return match_intensity
 
 
-### Run Main ###
-if __name__ == "__main__":
-    LANG = "en"  # 'de' or 'en'
-
+def experiment_main(ihrl):
     participant = input("Bitte geben Sie Ihre Initialen ein (z.B. demo): ")
 
     # get last trial from results file, to be able to resume from that trial onwards
-    start_trl = get_last_trial(participant)
+    start_trial = get_last_trial(participant)
 
     # read design file and open result file for saving
     design = read_design_csv(f"design/{participant}/{participant}.csv")
 
     #  get last trial (total number of trials)
-    end_trl = len(design["Trial"])
+    end_trial = len(design["Trial"])
 
-    # results file
-    rfl = open(f"results/{participant}/{participant}.txt", "a")
+    if start_trial == 0:
+        with open(f"results/{participant}/{participant}.txt", "a") as rfl:
+            # fid_match.write('b2\tc2\td2\td3\td4\tc4\tb4\tb3\n')
+            result_headers = [
+                "trial",
+                "context",
+                "image.fname",
+                "r",
+                "start_idx",
+                "match_lum",
+                "resp.time",
+                "timestamp",
+            ]
+            rfl.write("\t".join(result_headers) + "\n")
 
-    # file to save surround of match check
-    fid_all_match = open(f"results/{participant}/{participant}_all_match_surr.txt", "a")
+    # loop over trials in design file
+    # ================================
+    for trial_idx in np.arange(start_trial, end_trial):
+        # show break automatically, define after how many trials
+        if trial_idx > 0 and (trial_idx - start_trial) == (end_trial - start_trial) // 2:
+            text_displays.block_break(
+                ihrl, trial=(trial_idx - start_trial), total_trials=(end_trial - start_trial)
+            )
 
-    if start_trl == 0:
-        # fid_match.write('b2\tc2\td2\td3\td4\tc4\tb4\tb3\n')
-        result_headers = [
-            "trial",
-            "context",
-            "image.fname",
-            "r",
-            "start_idx",
-            "match_lum",
-            "resp.time",
-            "timestamp",
-        ]
-        rfl.write("\t".join(result_headers) + "\n")
+        # get values from design matrix for current trial
+        context, r, Trial = (
+            design["context"][trial_idx],
+            float(design["r"][trial_idx]),
+            int(design["Trial"][trial_idx]),
+        )
 
-    # We create the HRL object with parameters that depend on the setup we are using
+        run_trial(ihrl, trial_idx, context, r, Trial, participant)
+
+    print("Session complete")
+    rfl.close()
+
+
+if __name__ == "__main__":
+    LANG = "en"  # 'de' or 'en'
+
+    # Create HRL interface object with parameters that depend on the setup
     ihrl = HRL(
         **SETUP,
         wdth=WIDTH,
@@ -274,11 +278,6 @@ if __name__ == "__main__":
         db=True,
     )
 
-    # loop over trials in design file
-    # ================================
-    for trl in np.arange(start_trl, end_trl):
-        run_trial(ihrl, trl, start_trl, end_trl)  # function that executes the experiment
+    experiment_main(ihrl)
 
     ihrl.close()
-    print("Session complete")
-    rfl.close()
