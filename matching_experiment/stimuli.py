@@ -1,4 +1,34 @@
 import numpy as np
+from PIL import Image
+
+PPD = 32
+
+
+VARIEGATED_ARRAY = np.loadtxt("matchsurround.txt")
+
+
+def image_to_array(fname, in_format="png"):
+    # Function written by Marianne
+    """
+    Reads the specified image file (default: png), converts it to grayscale
+    and into a numpy array
+
+    Input:
+    ------
+    fname       - name of image file
+    in_format   - extension (png default)
+
+    Output:
+    -------
+    numpy array
+    """
+    im = Image.open(f"{fname}.{in_format}").convert("L")
+    temp_matrix = [im.getpixel((y, x)) for x in range(im.size[1]) for y in range(im.size[0])]
+    temp_matrix = np.array(temp_matrix).reshape(im.size[1], im.size[0])
+    im_matrix = np.array(temp_matrix.shape, dtype=np.float64)
+    im_matrix = temp_matrix / 255.0
+    # print im_matrix
+    return im_matrix
 
 
 def show_stimulus(
@@ -16,7 +46,9 @@ def show_stimulus(
     )
 
     # Update matching field intensity
-    matching_field_stim["img"] = np.where(matching_field_stim["field_mask"], match_intensity, matching_field_stim["img"])
+    matching_field_stim["img"] = np.where(
+        matching_field_stim["field_mask"], match_intensity, matching_field_stim["img"]
+    )
 
     # Draw the matching field
     matching_texture = ihrl.graphics.newTexture(matching_field_stim["img"])
