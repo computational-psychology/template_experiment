@@ -12,6 +12,7 @@ Uses HRL on python 3
 import time
 from socket import gethostname
 
+import data_management
 import experiment_logic
 import text_displays
 from helper_functions import read_design_csv
@@ -78,35 +79,8 @@ def get_last_trial(vp_id):
     return last_trl
 
 
-def save_trial(
-    Trial,
-    context,
-    stim_name,
-    r,
-    match_intensity_start,
-    match_intensity,
-    resptime,
-    stop_time,
-    participant,
-):
-    with open(f"../data/results/{participant}/{participant}.txt", "a") as rfl:
-        rfl.write(
-            "%d\t%s\t%s\t%f\t%f\t%f\t%f\t%f\n"
-            % (
-                Trial,
-                context,
-                stim_name,
-                r,
-                match_intensity_start,
-                match_intensity,
-                resptime,
-                stop_time,
-            )
-        )
-
-
 def experiment_main(ihrl):
-    participant = input("Bitte geben Sie Ihre Initialen ein (z.B. demo): ")
+    participant = data_management.participant
 
     # get last trial from results file, to be able to resume from that trial onwards
     start_trial = get_last_trial(participant)
@@ -116,21 +90,6 @@ def experiment_main(ihrl):
 
     #  get last trial (total number of trials)
     end_trial = len(design["Trial"])
-
-    if start_trial == 0:
-        with open(f"../data/results/{participant}/{participant}.txt", "a") as rfl:
-            # fid_match.write('b2\tc2\td2\td3\td4\tc4\tb4\tb3\n')
-            result_headers = [
-                "trial",
-                "context",
-                "image.fname",
-                "r",
-                "start_idx",
-                "match_lum",
-                "resp.time",
-                "timestamp",
-            ]
-            rfl.write("\t".join(result_headers) + "\n")
 
     # loop over trials in design file
     # ================================
@@ -144,7 +103,7 @@ def experiment_main(ihrl):
             )
 
         # current trial design variables, as dict
-        trial_design = {
+        trial = {
             "participant": participant,
             "context": design["context"][trial_idx],
             "r": float(design["r"][trial_idx]),
@@ -152,17 +111,14 @@ def experiment_main(ihrl):
         }
 
         # Run trial
-        trial_result = experiment_logic.run_trial(ihrl, **trial_design)
+        trial_result = experiment_logic.run_trial(ihrl, **trial)
         trial_result["stop_time"] = time.time()
+        trial.update(trial_result)
 
         # Save trial
-        save_trial(
-            **trial_design,
-            **trial_result,
-        )
+        data_management.save_trial(trial, block_id="0")
 
     print("Session complete")
-    rfl.close()
 
 
 if __name__ == "__main__":
