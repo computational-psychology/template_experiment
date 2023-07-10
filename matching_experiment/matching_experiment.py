@@ -106,6 +106,75 @@ def get_last_trial(vp_id):
     return last_trl
 
 
+def save_trial(
+    Trial,
+    context,
+    stim_name,
+    r,
+    match_intensity_start,
+    match_intensity,
+    resptime,
+    timestamp,
+    participant,
+):
+    with open(f"results/{participant}/{participant}.txt", "a") as rfl:
+        rfl.write(
+            "%d\t%s\t%s\t%f\t%f\t%f\t%f\t%f\n"
+            % (
+                Trial,
+                context,
+                stim_name,
+                r,
+                match_intensity_start,
+                match_intensity,
+                resptime,
+                timestamp,
+            )
+        )
+
+
+def save_variegated(variegated_array, participant):
+    # surround information of matching patch should be written together with matched value
+    with open(f"results/{participant}/{participant}_all_match_surr.txt", "a") as fid_all_match:
+        fid_all_match.write(
+            "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
+            % (
+                variegated_array[0, 0],
+                variegated_array[0, 1],
+                variegated_array[0, 2],
+                variegated_array[0, 3],
+                variegated_array[0, 4],
+                variegated_array[1, 0],
+                variegated_array[1, 1],
+                variegated_array[1, 2],
+                variegated_array[1, 3],
+                variegated_array[1, 4],
+                variegated_array[2, 0],
+                variegated_array[2, 1],
+                variegated_array[2, 3],
+                variegated_array[2, 4],
+                variegated_array[3, 0],
+                variegated_array[3, 1],
+                variegated_array[3, 2],
+                variegated_array[3, 3],
+                variegated_array[3, 4],
+                variegated_array[4, 0],
+                variegated_array[4, 1],
+                variegated_array[4, 2],
+                variegated_array[4, 3],
+                variegated_array[4, 4],
+            )
+        )
+
+    # screenshooting
+    # gl.glReadBuffer(gl.GL_FRONT)
+    # pixels = gl.glReadPixels(0,0, WIDTH, HEIGHT, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
+
+    # image = Image.fromstring("RGB", (WIDTH, HEIGHT), pixels)
+    # image = image.transpose( Image.FLIP_TOP_BOTTOM)
+    # image.save('screenshot_%d.png' % trl)
+
+
 def run_trial(ihrl, trial_idx, context, r, Trial, participant):
     # function written by Torsten and edited by Christiane, reused by GA
     # read out variable values for each trial from the design matrix
@@ -155,60 +224,20 @@ def run_trial(ihrl, trial_idx, context, r, Trial, participant):
     resptime = t2 - t1
     timestamp = time.time()
 
-    with open(f"results/{participant}/{participant}.txt", "a") as rfl:
-        rfl.write(
-            "%d\t%s\t%s\t%f\t%f\t%f\t%f\t%f\n"
-            % (
-                Trial,
-                context,
-                stim_name,
-                r,
-                match_intensity_start,
-                match_intensity,
-                resptime,
-                timestamp,
-            )
-        )
+    # Save trial, variegated array
+    save_trial(
+        Trial,
+        context,
+        stim_name,
+        r,
+        match_intensity_start,
+        match_intensity,
+        resptime,
+        timestamp,
+        participant,
+    )
 
-    # surround information of matching patch should be written together with matched value
-    with open(f"results/{participant}/{participant}_all_match_surr.txt", "a") as fid_all_match:
-        fid_all_match.write(
-            "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
-            % (
-                variegated_array[0, 0],
-                variegated_array[0, 1],
-                variegated_array[0, 2],
-                variegated_array[0, 3],
-                variegated_array[0, 4],
-                variegated_array[1, 0],
-                variegated_array[1, 1],
-                variegated_array[1, 2],
-                variegated_array[1, 3],
-                variegated_array[1, 4],
-                variegated_array[2, 0],
-                variegated_array[2, 1],
-                variegated_array[2, 3],
-                variegated_array[2, 4],
-                variegated_array[3, 0],
-                variegated_array[3, 1],
-                variegated_array[3, 2],
-                variegated_array[3, 3],
-                variegated_array[3, 4],
-                variegated_array[4, 0],
-                variegated_array[4, 1],
-                variegated_array[4, 2],
-                variegated_array[4, 3],
-                variegated_array[4, 4],
-            )
-        )
-
-    # screenshooting
-    # gl.glReadBuffer(gl.GL_FRONT)
-    # pixels = gl.glReadPixels(0,0, WIDTH, HEIGHT, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
-
-    # image = Image.fromstring("RGB", (WIDTH, HEIGHT), pixels)
-    # image = image.transpose( Image.FLIP_TOP_BOTTOM)
-    # image.save('screenshot_%d.png' % trl)
+    save_variegated(variegated_array, participant=participant)
 
     # clean checkerboard texture
     checkerboard_stimulus.delete()
