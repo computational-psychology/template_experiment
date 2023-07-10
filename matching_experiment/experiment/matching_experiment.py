@@ -9,13 +9,13 @@ Uses HRL on python 3
 """
 
 
-import time
 from socket import gethostname
 
 import data_management
+import design
 import experiment_logic
+import pandas as pd
 import text_displays
-from helper_functions import read_design_csv
 from hrl import HRL
 
 inlab_siemens = "vlab" in gethostname()
@@ -60,64 +60,64 @@ else:
     bg_blank = 0.27
 
 
-def get_last_trial(vp_id):
-    try:
-        rfl = open(f"../data/results/{vp_id}/{vp_id}.txt")
-    except OSError:
-        print("result file not found")
-        return 0
+def run_block(ihrl, block, block_id):
+    print(f"Running block {block_id}")
+    # Get start, end trial
+    start_trial = block["trial"].iloc[0]
+    end_trial = block["trial"].iloc[-1] + 1
 
-    for line in rfl:
-        try:
-            last_trl = int(line.split("\t")[0])
-        except ValueError:
-            last_trl = 0
+    # loop over trials in block
+    for idx, trial in block.iterrows():
+        trial_id = trial["trial"]
+        print(f"TRIAL {trial_id}")
 
-    if last_trl > 0:
-        last_trl = last_trl + 1
+        # show a break screen automatically after so many trials
+        if (end_trial - trial_id) % (end_trial / 2) == 0 and (trial_id - start_trial) != 0:
+            text_displays.block_break(ihrl, trial_id, (start_trial + (end_trial - start_trial)))
 
-    return last_trl
+        # current trial design variables (convert from pandas row to dict)
+        trial = trial.to_dict()
+
+        # run trial
+        t1 = pd.Timestamp.now().strftime("%Y%m%d:%H%M%S.%f")
+        trial_results = experiment_logic.run_trial(ihrl, **trial)
+        trial.update(trial_results)
+        t2 = pd.Timestamp.now().strftime("%Y%m%d:%H%M%S.%f")
+
+        # Save trial
+        data_management.save_trial(trial, block_id)
+
+    print(f"Block {block_id} all trials completed.")
+    return block
 
 
 def experiment_main(ihrl):
-    participant = data_management.participant
+    # Get all blocks for this session
+    incomplete_blocks = data_management.get_incomplete_blocks()
+    if len(incomplete_blocks) == 0:
+        # No existing blocks for this session. Generate.
+        design.generate_session()
+        incomplete_blocks = data_management.get_incomplete_blocks()
+    print(f"{len(incomplete_blocks)} incomplete blocks")
 
-    # get last trial from results file, to be able to resume from that trial onwards
-    start_trial = get_last_trial(participant)
+    # Run
+    try:
+        # Iterate over all blocks that need to be presented
+        for block_num, (block_id, block) in enumerate(incomplete_blocks.items()):
+            # Run block
+            print(f"Running session block {block_num+1}: {block_id}")
+            block = run_block(ihrl, block=block, block_id=block_id)
 
-    # read design file and open result file for saving
-    design = read_design_csv(f"../data/design/{participant}/{participant}.csv")
+            if block_num + 1 < len(incomplete_blocks):
+                text_displays.block_end(ihrl, block_num + 1, len(incomplete_blocks))
+    except SystemExit as e:
+        # Cleanup
+        print("Exiting...")
+        ihrl.close()
+        raise e
 
-    #  get last trial (total number of trials)
-    end_trial = len(design["Trial"])
-
-    # loop over trials in design file
-    # ================================
-    for trial_idx in range(start_trial, end_trial):
-        print(f"TRIAL {trial_idx}: ")
-
-        # show break automatically, define after how many trials
-        if trial_idx > 0 and (trial_idx - start_trial) == (end_trial - start_trial) // 2:
-            text_displays.block_break(
-                ihrl, trial=(trial_idx - start_trial), total_trials=(end_trial - start_trial)
-            )
-
-        # current trial design variables, as dict
-        trial = {
-            "participant": participant,
-            "context": design["context"][trial_idx],
-            "r": float(design["r"][trial_idx]),
-            "Trial": int(design["Trial"][trial_idx]),
-        }
-
-        # Run trial
-        trial_result = experiment_logic.run_trial(ihrl, **trial)
-        trial_result["stop_time"] = time.time()
-        trial.update(trial_result)
-
-        # Save trial
-        data_management.save_trial(trial, block_id="0")
-
+    # Close session
+    ihrl.close()
     print("Session complete")
 
 

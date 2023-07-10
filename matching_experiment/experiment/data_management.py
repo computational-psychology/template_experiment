@@ -250,11 +250,13 @@ def get_incomplete_trials(block_id):
             how="outer",
             indicator=True,
         )
-        uncompleted_trials = uncompleted_trials.loc[
-            uncompleted_trials["_merge"] == "left_only"
-        ].drop(
-            columns=["_merge", "response", "start_time", "stop_time"],
-            errors="ignore",
+        uncompleted_trials = (
+            uncompleted_trials.loc[uncompleted_trials["_merge"] == "left_only"]
+            .drop(
+                columns=["_merge"],
+                errors="ignore",
+            )
+            .dropna(axis="columns", how="all")
         )
     else:
         uncompleted_trials = design

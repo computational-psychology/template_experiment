@@ -2,6 +2,7 @@ import random
 import time
 
 import adjustment
+import data_management
 import stimuli
 from asymmetric_matching import matching_field, perturb_array
 
@@ -9,11 +10,11 @@ from asymmetric_matching import matching_field, perturb_array
 STEP_SIZES = (0.02, 0.002)
 
 
-def run_trial(ihrl, context, r, trial, participant):
+def run_trial(ihrl, context, r, trial):
     # function written by Torsten and edited by Christiane, reused by GA
 
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
-    stim_name = f"../stimuli/{participant}/{trial}_{context}_{r:.2f}"
+    stim_name = f"../stimuli/{data_management.participant}/{trial}_{context}_{r:.2f}"
 
     # load stimlus image and convert from png to numpy array
     stimulus_image = stimuli.image_to_array(stim_name)
@@ -57,7 +58,7 @@ def run_trial(ihrl, context, r, trial, participant):
     resptime = t2 - t1
 
     # Save variegated array
-    save_variegated(variegated_array, participant=participant)
+    save_variegated(variegated_array)
 
     # clean checkerboard texture
     checkerboard_stimulus.delete()
@@ -88,10 +89,11 @@ def adjust_loop(ihrl, match_intensity, stimulus_texture, matching_field_stim):
     return match_intensity
 
 
-def save_variegated(variegated_array, participant):
+def save_variegated(variegated_array):
     # surround information of matching patch should be written together with matched value
     with open(
-        f"../data/results/{participant}/{participant}_all_match_surr.txt", "a"
+        f"{data_management.results_dir}/{data_management.participant}_{data_management.session_id}_all-match-surr.txt",
+        "a",
     ) as fid_all_match:
         fid_all_match.write(
             "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
