@@ -98,7 +98,7 @@ def get_last_trial(vp_id):
         try:
             last_trl = int(line.split("\t")[0])
         except ValueError:
-            pass
+            last_trl = 0
 
     if last_trl > 0:
         last_trl = last_trl + 1
