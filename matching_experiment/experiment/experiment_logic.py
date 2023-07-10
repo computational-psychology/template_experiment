@@ -9,11 +9,11 @@ from asymmetric_matching import matching_field, perturb_array
 STEP_SIZES = (0.02, 0.002)
 
 
-def run_trial(ihrl, context, r, Trial, participant):
+def run_trial(ihrl, context, r, trial, participant):
     # function written by Torsten and edited by Christiane, reused by GA
 
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
-    stim_name = f"../stimuli/{participant}/{Trial}_{context}_{r:.2f}"
+    stim_name = f"../stimuli/{participant}/{trial}_{context}_{r:.2f}"
 
     # load stimlus image and convert from png to numpy array
     stimulus_image = stimuli.image_to_array(stim_name)
@@ -25,7 +25,7 @@ def run_trial(ihrl, context, r, Trial, participant):
     match_intensity_start = random.random()
 
     # create matching field (variegated checkerboard)
-    variegated_array = perturb_array(stimuli.VARIEGATED_ARRAY, seed=Trial)
+    variegated_array = perturb_array(stimuli.VARIEGATED_ARRAY, seed=trial)
 
     matching_field_stim = matching_field(
         variegated_array=variegated_array,
