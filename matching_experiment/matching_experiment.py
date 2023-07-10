@@ -114,7 +114,7 @@ def save_trial(
     match_intensity_start,
     match_intensity,
     resptime,
-    timestamp,
+    stop_time,
     participant,
 ):
     with open(f"results/{participant}/{participant}.txt", "a") as rfl:
@@ -128,7 +128,7 @@ def save_trial(
                 match_intensity_start,
                 match_intensity,
                 resptime,
-                timestamp,
+                stop_time,
             )
         )
 
@@ -175,10 +175,8 @@ def save_variegated(variegated_array, participant):
     # image.save('screenshot_%d.png' % trl)
 
 
-def run_trial(ihrl, trial_idx, context, r, Trial, participant):
+def run_trial(ihrl, context, r, Trial, participant):
     # function written by Torsten and edited by Christiane, reused by GA
-    # read out variable values for each trial from the design matrix
-    print(f"TRIAL {trial_idx}: ")
 
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
     stim_name = f"stimuli/{participant}/{Trial}_{context}_{r:.2f}"
@@ -219,30 +217,23 @@ def run_trial(ihrl, trial_idx, context, r, Trial, participant):
         matching_field_stim=matching_field_stim,
         match_intensity=match_intensity_start,
     )
+
+    # Record response time
     t2 = time.time()
-
     resptime = t2 - t1
-    timestamp = time.time()
 
-    # Save trial, variegated array
-    save_trial(
-        Trial,
-        context,
-        stim_name,
-        r,
-        match_intensity_start,
-        match_intensity,
-        resptime,
-        timestamp,
-        participant,
-    )
-
+    # Save variegated array
     save_variegated(variegated_array, participant=participant)
 
     # clean checkerboard texture
     checkerboard_stimulus.delete()
 
-    return match_intensity
+    return {
+        "match_intensity": match_intensity,
+        "match_intensity_start": match_intensity_start,
+        "stim_name": stim_name,
+        "resptime": resptime,
+    }
 
 
 def experiment_main(ihrl):
@@ -275,20 +266,31 @@ def experiment_main(ihrl):
     # loop over trials in design file
     # ================================
     for trial_idx in np.arange(start_trial, end_trial):
+        print(f"TRIAL {trial_idx}: ")
+
         # show break automatically, define after how many trials
         if trial_idx > 0 and (trial_idx - start_trial) == (end_trial - start_trial) // 2:
             text_displays.block_break(
                 ihrl, trial=(trial_idx - start_trial), total_trials=(end_trial - start_trial)
             )
 
-        # get values from design matrix for current trial
-        context, r, Trial = (
-            design["context"][trial_idx],
-            float(design["r"][trial_idx]),
-            int(design["Trial"][trial_idx]),
-        )
+        # current trial design variables, as dict
+        trial_design = {
+            "participant": participant,
+            "context": design["context"][trial_idx],
+            "r": float(design["r"][trial_idx]),
+            "Trial": int(design["Trial"][trial_idx]),
+        }
 
-        run_trial(ihrl, trial_idx, context, r, Trial, participant)
+        # Run trial
+        trial_result = run_trial(ihrl, **trial_design)
+        trial_result["stop_time"] = time.time()
+
+        # Save trial
+        save_trial(
+            **trial_design,
+            **trial_result,
+        )
 
     print("Session complete")
     rfl.close()
