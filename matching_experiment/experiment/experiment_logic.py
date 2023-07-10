@@ -13,7 +13,7 @@ def run_trial(ihrl, context, r, Trial, participant):
     # function written by Torsten and edited by Christiane, reused by GA
 
     # use these variable values to define test stimulus (name corresponds to design matrix and name of saved image)
-    stim_name = f"stimuli/{participant}/{Trial}_{context}_{r:.2f}"
+    stim_name = f"../stimuli/{participant}/{Trial}_{context}_{r:.2f}"
 
     # load stimlus image and convert from png to numpy array
     stimulus_image = stimuli.image_to_array(stim_name)
@@ -90,7 +90,9 @@ def adjust_loop(ihrl, match_intensity, stimulus_texture, matching_field_stim):
 
 def save_variegated(variegated_array, participant):
     # surround information of matching patch should be written together with matched value
-    with open(f"results/{participant}/{participant}_all_match_surr.txt", "a") as fid_all_match:
+    with open(
+        f"../data/results/{participant}/{participant}_all_match_surr.txt", "a"
+    ) as fid_all_match:
         fid_all_match.write(
             "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n"
             % (

@@ -61,7 +61,7 @@ else:
 
 def get_last_trial(vp_id):
     try:
-        rfl = open(f"results/{vp_id}/{vp_id}.txt")
+        rfl = open(f"../data/results/{vp_id}/{vp_id}.txt")
     except OSError:
         print("result file not found")
         return 0
@@ -89,7 +89,7 @@ def save_trial(
     stop_time,
     participant,
 ):
-    with open(f"results/{participant}/{participant}.txt", "a") as rfl:
+    with open(f"../data/results/{participant}/{participant}.txt", "a") as rfl:
         rfl.write(
             "%d\t%s\t%s\t%f\t%f\t%f\t%f\t%f\n"
             % (
@@ -112,13 +112,13 @@ def experiment_main(ihrl):
     start_trial = get_last_trial(participant)
 
     # read design file and open result file for saving
-    design = read_design_csv(f"design/{participant}/{participant}.csv")
+    design = read_design_csv(f"../data/design/{participant}/{participant}.csv")
 
     #  get last trial (total number of trials)
     end_trial = len(design["Trial"])
 
     if start_trial == 0:
-        with open(f"results/{participant}/{participant}.txt", "a") as rfl:
+        with open(f"../data/results/{participant}/{participant}.txt", "a") as rfl:
             # fid_match.write('b2\tc2\td2\td3\td4\tc4\tb4\tb3\n')
             result_headers = [
                 "trial",
