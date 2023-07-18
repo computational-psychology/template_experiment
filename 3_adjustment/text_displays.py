@@ -1,6 +1,10 @@
+import sys
+
 import numpy as np
 from hrl.graphics import graphics
 from PIL import Image, ImageDraw, ImageFont
+
+LANG = "en"
 
 
 def text_to_arr(text, intensity_text=0.0, intensity_background=0.2, fontsize=36):
@@ -43,7 +47,11 @@ def text_to_arr(text, intensity_text=0.0, intensity_background=0.2, fontsize=36)
         )
 
     # Determine dimensions of total text
-    text_width, text_height = font.getsize(text)
+    # text_width, text_height = font.getsize(text)
+    # Determine dimensions of total text
+    text_width = int(font.getlength(text))
+    left, top, right, bottom = font.getbbox(text)
+    text_height = int(top + bottom)
 
     # Instantiate grayscale image of correct dimensions and background
     img = Image.new("L", (text_width, text_height), int(intensity_background * 255))
@@ -83,6 +91,9 @@ def display_text(
     window_shape : (int, int)
         shape (in pixels) of the HRL window, by default (1024, 768)
     """
+
+    # Clear current screen
+    ihrl.graphics.flip(clr=True)
 
     # Draw each line of text, one at a time
     for line_nr, line in enumerate(text):

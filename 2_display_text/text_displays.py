@@ -1,6 +1,10 @@
+import sys
+
 import numpy as np
 from hrl.graphics import graphics
 from PIL import Image, ImageDraw, ImageFont
+
+LANG = "en"
 
 
 def text_to_arr(text, intensity_text=0.0, intensity_background=0.2, fontsize=36):
@@ -30,7 +34,7 @@ def text_to_arr(text, intensity_text=0.0, intensity_background=0.2, fontsize=36)
     try:
         # Not all machines will have Arial installed...
         font = ImageFont.truetype(
-            "/usr/share/fonts/truetype/msttcorefonts/arial.ttf",
+            "arial.ttf",
             fontsize,
             encoding="unic",
         )
@@ -43,7 +47,11 @@ def text_to_arr(text, intensity_text=0.0, intensity_background=0.2, fontsize=36)
         )
 
     # Determine dimensions of total text
-    text_width, text_height = font.getsize(text)
+    # text_width, text_height = font.getsize(text)
+    # Determine dimensions of total text
+    text_width = int(font.getlength(text))
+    left, top, right, bottom = font.getbbox(text)
+    text_height = int(top + bottom)
 
     # Instantiate grayscale image of correct dimensions and background
     img = Image.new("L", (text_width, text_height), int(intensity_background * 255))
@@ -84,6 +92,9 @@ def display_text(
         shape (in pixels) of the HRL window, by default (1024, 768)
     """
 
+    # Clear current screen
+    ihrl.graphics.flip(clr=True)
+
     # Draw each line of text, one at a time
     for line_nr, line in enumerate(text):
         # Generate image-array, OpenGL texture
@@ -110,6 +121,98 @@ def display_text(
     ihrl.graphics.flip(clr=True)
 
     # Cleanup: delete texture
-    textline.delete()
+    graphics.deleteTextureDL(textline._dlid)
 
     return
+
+
+def block_break(ihrl, trial, total_trials, **kwargs):
+    """Display a (mid-block) break message to participant.
+
+    List how many trials out of total (in this block) have been completed.
+    Participant needs to press button to continue.
+
+    Parameters
+    ----------
+    ihrl : hrl
+        HRL-interface object to use for display and input
+    trial : int
+        current trial
+    total_trials : int
+        total number of trials (in this block)
+    """
+
+    # @author: Torsten Betz; Joris Vincent
+    if LANG == "de":
+        lines = [
+            "Du kannst jetzt eine Pause machen.",
+            " ",
+            f"Du hast {trial} von {total_trials} Durchgängen geschafft.",
+            " ",
+            "Wenn du bereit bist, drücke die mittlere Taste.",
+        ]
+    elif LANG == "en":
+        lines = [
+            "You can take a break now.",
+            " ",
+            f"You have completed {trial} out of {total_trials} trials.",
+            " ",
+            "When you are ready, press the middle button.",
+        ]
+    else:
+        raise ("LANG not available")
+
+    display_text(ihrl, text=lines, **kwargs)
+    btn, _ = ihrl.inputs.readButton(btns=("Escape", "Space"))
+
+    if btn in ("Escape", "Left"):
+        sys.exit("Participant terminated experiment")
+    elif btn in ("Space", "Right"):
+        return
+
+
+def block_end(ihrl, block, total_blocks, **kwargs):
+    """Display a (mid-session) break message to participant.
+
+    List how many blocks out of total (in this session) have been completed.
+    Participant needs to press button to continue.
+
+    Parameters
+    ----------
+    ihrl : hrl
+        HRL-interface object to use for display and input
+    block : int
+        current block
+    total_blocks : int
+        total number of blocks (in this session)
+    """
+
+    # @author: Torsten Betz; Joris Vincent
+    if LANG == "de":
+        lines = [
+            "Du kannst jetzt eine Pause machen.",
+            " ",
+            f"Du hast {block} von {total_blocks} blocks geschafft.",
+            " ",
+            "Zum Weitermachen, druecke die rechte Taste,",
+            "zum Beenden druecke die linke/mittlere Taste.",
+        ]
+    elif LANG == "en":
+        lines = [
+            "You can take a break now.",
+            " ",
+            f"You have completed {block} out of {total_blocks} blocks.",
+            " ",
+            "To continue, press the right button,",
+            "to finish, press the left or middle button.",
+        ]
+    else:
+        raise ("LANG not available")
+
+    display_text(ihrl, text=lines, **kwargs)
+    btn, _ = ihrl.inputs.readButton(btns=("Escape", "Space", "Left", "Right"))
+
+    if btn in ("Escape", "Left"):
+        sys.exit("Participant terminated experiment")
+    elif btn in ("Space", "Right"):
+        return
