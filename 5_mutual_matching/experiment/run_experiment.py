@@ -1,44 +1,79 @@
-"""Run a session of [this] experiment
-
-This module controls the basic experiment flow;
-finding incomplete trails/blocks, and iterating through them.
-
-The actual experimental procedure is defined in `design.py`
-
-Raises
-------
-SystemExit
-    if participant (/ experimenter) quits session before end
+#!/usr/bin/env python
 """
+Asymmetric matching experiment with external, variegatd matching field
+
+Uses HRL on python 3
+
+
+@authors: CW, GA.
+"""
+
+
+from socket import gethostname
 
 import data_management
 import design
+import experiment_logic
 import pandas as pd
 import text_displays
 from hrl import HRL
 
+if "vlab" in gethostname():
+    SETUP = {
+        "graphics": "datapixx",
+        "inputs": "responsepixx",
+        "scrn": 1,
+        "lut": "lut.csv",
+        "fs": True,
+        "wdth": 1024,
+        "hght": 768,
+        "bg": 0.1,  # corresponding to 50 cd/m2 approx
+    }
+elif "viewpixx" in gethostname():
+    SETUP = {
+        "graphics": "viewpixx",
+        "inputs": "responsepixx",
+        "scrn": 1,
+        "lut": "lut_viewpixx.csv",
+        "fs": True,
+        "wdth": 1920,
+        "hght": 1080,
+        "bg": 0.27,  # corresponding to 50 cd/m2 approx
+    }
+else:
+    SETUP = {
+        "graphics": "gpu",
+        "inputs": "keyboard",
+        "scrn": 0,
+        "lut": None,
+        "fs": False,
+        "wdth": 1024,
+        "hght": 768,
+        "bg": 0.3,
+    }
 
-def run_block(hrl, block, block_id):
+
+def run_block(ihrl, block, block_id):
     print(f"Running block {block_id}")
     # Get start, end trial
-    start_trl = block["trial"].iloc[0]
-    end_trl = block["trial"].iloc[-1] + 1
+    start_trial = block["trial"].iloc[0]
+    end_trial = block["trial"].iloc[-1] + 1
 
-    # loop over trials
+    # loop over trials in block
     for idx, trial in block.iterrows():
         trial_id = trial["trial"]
         print(f"TRIAL {trial_id}")
 
         # show a break screen automatically after so many trials
-        if (end_trl - trial_id) % (end_trl / 2) == 0 and (trial_id - start_trl) != 0:
-            text_displays.block_break(ihrl, trial_id, (start_trl + (end_trl - start_trl)))
+        if (end_trial - trial_id) % (end_trial / 2) == 0 and (trial_id - start_trial) != 0:
+            text_displays.block_break(ihrl, trial_id, (start_trial + (end_trial - start_trial)))
 
         # current trial design variables (convert from pandas row to dict)
         trial = trial.to_dict()
 
         # run trial
         t1 = pd.Timestamp.now().strftime("%Y%m%d:%H%M%S.%f")
-        trial_results = design.run_trial(hrl, **trial)
+        trial_results = experiment_logic.run_trial(ihrl, **trial)
         trial.update(trial_results)
         t2 = pd.Timestamp.now().strftime("%Y%m%d:%H%M%S.%f")
 
@@ -84,17 +119,13 @@ def experiment_main(ihrl):
 
 
 if __name__ == "__main__":
-    # Create HRL interface object
+    # Create HRL interface object with parameters that depend on the setup
     ihrl = HRL(
-        graphics="gpu",  # Use the default GPU as graphics device driver
-        # graphics='datapixx',    # In the lab, we use the datapixx device driver
-        inputs="keyboard",  # Use the keyboard as input device driver
-        # inputs="responsepixx",  # In the lab, we use the responsepixx input device
-        hght=design.SHAPE[0],
-        wdth=design.SHAPE[1],
-        scrn=0,  # Which screen (monitor) to use
-        fs=False,  # Fullscreen?
-        bg=0.3,  # background intensity (black=0.0; white=1.0)
+        **SETUP,
+        photometer=None,
+        db=True,
     )
+
     experiment_main(ihrl)
+
     ihrl.close()

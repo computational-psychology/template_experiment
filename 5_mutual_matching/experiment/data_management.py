@@ -47,7 +47,7 @@ Subdirectories (`<..>/<session>/<block>/...csv`) are very annoying to work with;
 searching over filenames is easier.
 Thus, we use the _filename_ to make clear which participant, session, task, block, etc.
 these results belong to:
-`f"{participant}_{session_id}_{block_id}.results.csv"`, e.g. `jxv_20230626_matching-2_results.csv`
+`f"{participant}_{session_id}_{block_id}.results.csv"`, e.g. `JXV_20230626_matching-2_results.csv`
 
 Similarly, there is a corresponding `<>.design.csv`-file for every results file.
 The design is generated before data collection
@@ -63,21 +63,21 @@ are further subdivided by participant:
 top_level_repository
   /data
     /results
-      /jxv
-        /jxv_20230626_matching-1_results.csv
-        /jxv_20230626_matching-2_results.csv
-        /jxv_20230630_matching-1_results.csv
+      /JXV
+        /JXV_20230626_matching-1_results.csv
+        /JXV_20230626_matching-2_results.csv
+        /JXV_20230630_matching-1_results.csv
         /...
-      /mxm
-        /mxm_20230620_matching-1_resuls.csv
+      /MXM
+        /MXM_20230620_matching-1_resuls.csv
         ...
     /design
-      /jxv
-        /jxv_20230626_matching-1.design.csv
-        /jxv_20230626_matching-2.design.csv
-        /jxv_20230630_matching-1.design.csv
+      /JXV
+        /JXV_20230626_matching-1.design.csv
+        /JXV_20230626_matching-2.design.csv
+        /JXV_20230630_matching-1.design.csv
         /...
-      /mxm
+      /MXM
         ...
   /experiment
     data_management.py
@@ -90,7 +90,6 @@ top_level_repository
 ```
 """
 import csv
-import glob
 from datetime import datetime
 from pathlib import Path
 
@@ -98,9 +97,9 @@ import pandas as pd
 
 LANG = "en"
 if LANG == "de":
-    participant = input("Bitte geben Sie Ihre Initialen ein (ex.: DEMO): ") or "DEMO"
+    participant = (input("Bitte geben Sie Ihre Initialen ein (z.b.: DEMO): ") or "DEMO").upper()
 if LANG == "en":
-    participant = input("Please enter participant initials (ex.: DEMO): ") or "DEMO"
+    participant = (input("Please enter participant initials (ex.: DEMO): ") or "DEMO").upper()
 
 # Experiment path:
 experiment_path = Path().absolute()
@@ -251,11 +250,13 @@ def get_incomplete_trials(block_id):
             how="outer",
             indicator=True,
         )
-        uncompleted_trials = uncompleted_trials.loc[
-            uncompleted_trials["_merge"] == "left_only"
-        ].drop(
-            columns=["_merge", "response", "start_time", "stop_time"],
-            errors="ignore",
+        uncompleted_trials = (
+            uncompleted_trials.loc[uncompleted_trials["_merge"] == "left_only"]
+            .drop(
+                columns=["_merge"],
+                errors="ignore",
+            )
+            .dropna(axis="columns", how="all")
         )
     else:
         uncompleted_trials = design
