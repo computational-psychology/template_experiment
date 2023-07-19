@@ -28,20 +28,13 @@ import sys, os, time
 from string import ascii_letters, digits
 from socket import gethostname
 
-inlab_siemens = True if "vlab" in gethostname() else False
 inlab_viewpixx =  True if "viewpixx" in gethostname() else False
 
 ### Eyetracker
 dummy_mode = False # True or False. Dummy mode=True is to debug the code without using eyetracker
 #######
 
-if inlab_siemens:
-    # size of Siements monitor
-    WIDTH = 1024
-    HEIGHT = 768
-    bg_blank = 0.1 # corresponding to 50 cd/m2 approx
-
-elif inlab_viewpixx:
+if inlab_viewpixx:
     # size of VPixx monitor
     WIDTH = 1920
     HEIGHT = 1080
