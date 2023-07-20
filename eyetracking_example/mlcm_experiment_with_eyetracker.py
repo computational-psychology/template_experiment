@@ -726,21 +726,7 @@ if __name__ == '__main__':
     ###########################################################################
 
     # We create the HRL object with parameters that depend on the setup we are using
-    if inlab_siemens:
-        # create HRL object
-        hrl = HRL(
-            graphics="datapixx",
-            inputs="responsepixx",
-            photometer=None,
-            wdth=WIDTH,
-            hght=HEIGHT,
-            bg=bg_blank,
-            scrn=1,
-            lut='lut.csv',
-            db=True,
-            fs=True,
-        )
-    elif inlab_viewpixx:
+    if inlab_viewpixx:
 
         hrl = HRL(
             graphics="viewpixx",
