@@ -87,7 +87,7 @@ def warning_min(ihrl, lang="en"):
         raise NotImplementedError(f'Language "{lang}" not available')
 
     display_text(ihrl, lines)
-    ihrl.inputs.readButton(btns=("Down", "Left", "Space"))
+    ihrl.inputs.readButton(btns=("Up", "Right", "Space"))
 
 
 def warning_max(ihrl, lang="en"):
