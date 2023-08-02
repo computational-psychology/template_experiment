@@ -10,8 +10,17 @@ stim_names = stimuli.stims.keys()
 rng = np.random.default_rng()
 
 
+RESPONSE_OPTIONS = [
+    "Left target is definitely brighter",
+    "Left target is maybe brighter",
+    "Targets are equally bright",
+    "Right target is maybe brighter",
+    "Right target is definitely brighter",
+]
+FONTSIZE = 25
 
-def display_stim(ihrl, stim, response_position):
+
+def display_stim(ihrl, stim, response_selection):
     """Display stimulus with specified target, context intensities
 
     Parameters
@@ -36,68 +45,46 @@ def display_stim(ihrl, stim, response_position):
     stim_texture.draw(pos=pos, sz=(stim_texture.wdth, stim_texture.hght))
 
     # Draw Likert-scale options
-    draw_options(ihrl, response_position)
+    draw_options(ihrl, response_selection)
 
     # Display: flip the frame buffer
     ihrl.graphics.flip(clr=True)  # also `clear` the frame buffer
 
 
 # %% DRAW LIKERT OPTIONS
-def draw_options(ihrl, position):
-    txt_ints = [0.0] * 5
-    txt_ints[position - 1] = 1.0
+def draw_options(ihrl, selection):
+    txt_ints = [0.0] * len(RESPONSE_OPTIONS)
+    txt_ints[selection - 1] = 1.0
 
-    t1 = ihrl.graphics.newTexture(
-        text_to_arr(
-            "Left target is definitely brighter",
-            intensity_background=ihrl.background,
-            intensity_text=txt_ints[0],
-            fontsize=25,
-        ),
-        "square",
-    )
-    t2 = ihrl.graphics.newTexture(
-        text_to_arr(
-            "Left target is maybe brighter",
-            intensity_background=ihrl.background,
-            intensity_text=txt_ints[1],
-            fontsize=25,
-        ),
-        "square",
-    )
-    t3 = ihrl.graphics.newTexture(
-        text_to_arr(
-            "Targets are equally bright",
-            intensity_background=ihrl.background,
-            intensity_text=txt_ints[2],
-            fontsize=25,
-        ),
-        "square",
-    )
-    t4 = ihrl.graphics.newTexture(
-        text_to_arr(
-            "Right target is maybe brighter",
-            intensity_background=ihrl.background,
-            intensity_text=txt_ints[3],
-            fontsize=25,
-        ),
-        "square",
-    )
-    t5 = ihrl.graphics.newTexture(
-        text_to_arr(
-            "Right target is definitely brighter",
-            intensity_background=ihrl.background,
-            intensity_text=txt_ints[4],
-            fontsize=25,
-        ),
-        "square",
-    )
+    # Generate textures
+    response_textures = []
+    for i, response in enumerate(RESPONSE_OPTIONS):
+        response_texture = ihrl.graphics.newTexture(
+            text_to_arr(
+                response,
+                intensity_background=ihrl.background,
+                intensity_text=txt_ints[i],
+                fontsize=FONTSIZE,
+            ),
+            "square",
+        )
+        response_textures.append(response_texture)
 
-    t1.draw((102, 1010), (t1.wdth, t1.hght))
-    t2.draw((102 + t1.wdth + 20, 1010), (t2.wdth, t2.hght))
-    t3.draw((102 + t2.wdth + t1.wdth + 40, 1010), (t3.wdth, t3.hght))
-    t4.draw((102 + t1.wdth + t2.wdth + t3.wdth + 60, 1010), (t4.wdth, t4.hght))
-    t5.draw((102 + t1.wdth + t2.wdth + t3.wdth + t4.wdth + 80, 1010), (t5.wdth, t5.hght))
+    # align top of textures, such that tallest texture has 10px bottom clearance
+    max_height = 0
+    # max_width = 0
+    for texture in response_textures:
+        if texture.hght > max_height:
+            max_height = texture.hght
+        # if texture.wdth > max_width:
+        #     max_width = texture.wdth
+    vertical_position = ihrl.height - max_height - 10
+    width = ihrl.width // len(RESPONSE_OPTIONS)
+
+    # Draw
+    for i, texture in enumerate(response_textures):
+        horizontal_position = width * i + ((width - texture.wdth) // 2)
+        texture.draw((horizontal_position, vertical_position))
 
 
 def select(ihrl, value, range):
@@ -157,7 +144,7 @@ def run_trial(ihrl, stim, **kwargs):
         display_stim(
             ihrl,
             stim,
-            response_position=response_position,
+            response_selection=response_position,
         )
         response_position, accept = select(ihrl, value=response_position, range=(1, 5))
 
