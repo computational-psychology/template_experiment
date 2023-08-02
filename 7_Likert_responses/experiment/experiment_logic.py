@@ -5,15 +5,10 @@ import numpy as np
 import stimuli
 from text_displays import text_to_arr
 
-intensity_background = 0.3
-
 stim_names = stimuli.stims.keys()
 
 rng = np.random.default_rng()
 
-# Define window parameters
-SHAPE = (1080, 1920)  # Desired shape of the drawing window
-CENTER = (SHAPE[0] // 2, SHAPE[1] // 2)  # Center of the drawing window
 
 
 def display_stim(ihrl, stim, response_position):
@@ -34,7 +29,8 @@ def display_stim(ihrl, stim, response_position):
     stim_texture = ihrl.graphics.newTexture(stimulus["img"])
 
     # Determine position: we want the stimulus in the center of the frame
-    pos = (CENTER[1] - (stim_texture.wdth // 2), CENTER[0] - (stim_texture.hght // 2))
+    window_center = (ihrl.height // 2, ihrl.width // 2)  # Center of the drawing window
+    pos = (window_center[1] - (stim_texture.wdth // 2), window_center[0] - (stim_texture.hght // 2))
 
     # Create a display: draw texture on the frame buffer
     stim_texture.draw(pos=pos, sz=(stim_texture.wdth, stim_texture.hght))
@@ -45,8 +41,6 @@ def display_stim(ihrl, stim, response_position):
     # Display: flip the frame buffer
     ihrl.graphics.flip(clr=True)  # also `clear` the frame buffer
 
-    return
-
 
 # %% DRAW LIKERT OPTIONS
 def draw_options(ihrl, position):
@@ -56,7 +50,7 @@ def draw_options(ihrl, position):
     t1 = ihrl.graphics.newTexture(
         text_to_arr(
             "Left target is definitely brighter",
-            intensity_background=intensity_background,
+            intensity_background=ihrl.background,
             intensity_text=txt_ints[0],
             fontsize=25,
         ),
@@ -65,7 +59,7 @@ def draw_options(ihrl, position):
     t2 = ihrl.graphics.newTexture(
         text_to_arr(
             "Left target is maybe brighter",
-            intensity_background=intensity_background,
+            intensity_background=ihrl.background,
             intensity_text=txt_ints[1],
             fontsize=25,
         ),
@@ -74,7 +68,7 @@ def draw_options(ihrl, position):
     t3 = ihrl.graphics.newTexture(
         text_to_arr(
             "Targets are equally bright",
-            intensity_background=intensity_background,
+            intensity_background=ihrl.background,
             intensity_text=txt_ints[2],
             fontsize=25,
         ),
@@ -83,7 +77,7 @@ def draw_options(ihrl, position):
     t4 = ihrl.graphics.newTexture(
         text_to_arr(
             "Right target is maybe brighter",
-            intensity_background=intensity_background,
+            intensity_background=ihrl.background,
             intensity_text=txt_ints[3],
             fontsize=25,
         ),
@@ -92,7 +86,7 @@ def draw_options(ihrl, position):
     t5 = ihrl.graphics.newTexture(
         text_to_arr(
             "Right target is definitely brighter",
-            intensity_background=intensity_background,
+            intensity_background=ihrl.background,
             intensity_text=txt_ints[4],
             fontsize=25,
         ),
