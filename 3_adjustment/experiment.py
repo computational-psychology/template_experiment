@@ -1,6 +1,7 @@
 import numpy as np
-from adjustment import adjust
 from hrl import HRL
+
+from adjustment import adjust
 from stimuli import whites
 from text_displays import display_text
 
@@ -30,7 +31,7 @@ def display_instructions(ihrl):
         "until its brightness is midway",
         "between the black and white.",
     ]
-    display_text(ihrl=ihrl, text=instructions, intensity_background=BACKGROUND, window_shape=SHAPE)
+    display_text(ihrl=ihrl, text=instructions)
 
 
 def display_stim(ihrl, intensity_target=0.5):
@@ -69,7 +70,7 @@ def display_accept(ihrl, intensity_target):
         intensity value of the target that participant accepted
     """
     message = ["You accepted a value!", "", f"You picked {intensity_target}"]
-    display_text(ihrl=ihrl, text=message, intensity_background=BACKGROUND, window_shape=SHAPE)
+    display_text(ihrl=ihrl, text=message)
 
 
 def experiment_main(ihrl):

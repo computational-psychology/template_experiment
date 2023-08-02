@@ -1,7 +1,6 @@
 import sys
 
 import numpy as np
-from hrl.graphics import graphics
 from PIL import Image, ImageDraw, ImageFont
 
 LANG = "en"
@@ -69,8 +68,7 @@ def display_text(
     text,
     fontsize=36,
     intensity_text=0.0,
-    intensity_background=0.2,
-    window_shape=(1024, 768),
+    intensity_background=None,
 ):
     """Display a screen with given text, waiting for participant to press button
 
@@ -87,15 +85,16 @@ def display_text(
     intensity_text : float, optional
         intensity of the text in range (0.0; 1.0), by default 0.0
     intensity_background : float, optional
-        intensity of the background in range (0.0; 1.0), by default 0.2
-    window_shape : (int, int)
-        shape (in pixels) of the HRL window, by default (1024, 768)
+        intensity of the background in range (0.0; 1.0), if None (default): ihrl.background
     """
+
+    bg = ihrl.background if intensity_background is None else intensity_background
 
     # Clear current screen
     ihrl.graphics.flip(clr=True)
 
     # Draw each line of text, one at a time
+    textures = []
     for line_nr, line in enumerate(text):
         # Generate image-array, OpenGL texture
         if line == "":
@@ -103,12 +102,13 @@ def display_text(
         text_arr = text_to_arr(
             text=line,
             intensity_text=intensity_text,
-            intensity_background=intensity_background,
+            intensity_background=bg,
             fontsize=fontsize,
         )
         textline = ihrl.graphics.newTexture(text_arr)
 
         # Determine position
+        window_shape = (ihrl.height, ihrl.width)
         text_pos = (
             (window_shape[1] - textline.wdth) // 2,
             ((window_shape[0] // 2) - ((len(text) // 2) - line_nr) * (textline.hght + 10)),
@@ -117,11 +117,15 @@ def display_text(
         # Draw line
         textline.draw(pos=text_pos)
 
+        # Accumulate
+        textures.append(textline)
+
     # Display
     ihrl.graphics.flip(clr=True)
 
     # Cleanup: delete texture
-    graphics.deleteTextureDL(textline._dlid)
+    for texture in textures:
+        texture.delete()
 
     return
 
@@ -203,8 +207,8 @@ def block_end(ihrl, block, total_blocks, **kwargs):
             " ",
             f"You have completed {block} out of {total_blocks} blocks.",
             " ",
-            "To continue, press the right button,",
-            "to finish, press the left or middle button.",
+            "To continue, press the right or middle button,",
+            "to finish, press the left button.",
         ]
     else:
         raise ("LANG not available")

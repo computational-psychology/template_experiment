@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 from hrl import HRL
+
 from text_displays import display_text
 
 # Define window parameters
@@ -34,7 +35,7 @@ def show_instructions(ihrl, direction):
         "Do it now.",
     ]
 
-    display_text(ihrl=ihrl, text=lines, window_shape=SHAPE, intensity_background=BACKGROUND)
+    display_text(ihrl=ihrl, text=lines)
 
     return
 
@@ -52,7 +53,7 @@ def show_correct(ihrl):
         "",
         "Press SPACE to continue.",
     ]
-    display_text(ihrl=ihrl, text=lines, window_shape=SHAPE, intensity_background=BACKGROUND)
+    display_text(ihrl=ihrl, text=lines)
 
 
 def process_response(ihrl, direction):

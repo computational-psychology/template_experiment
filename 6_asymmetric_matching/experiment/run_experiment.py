@@ -11,12 +11,13 @@ Uses HRL on python 3
 
 from socket import gethostname
 
+import pandas as pd
+from hrl import HRL
+
 import data_management
 import design
 import experiment_logic
-import pandas as pd
 import text_displays
-from hrl import HRL
 
 if "vlab" in gethostname():
     SETUP = {
@@ -69,9 +70,7 @@ def run_block(ihrl, block, block_id):
             text_displays.block_break(
                 ihrl,
                 trial_id,
-                (start_trial + (end_trial - start_trial)),
-                window_shape=(SETUP["hght"], SETUP["wdth"]),
-                intensity_background=SETUP["bg"],
+                (start_trial + (end_trial - start_trial))
             )
 
         # current trial design variables (convert from pandas row to dict)
@@ -115,9 +114,7 @@ def experiment_main(ihrl):
                 text_displays.block_end(
                     ihrl,
                     block_num + 1,
-                    len(incomplete_blocks),
-                    window_shape=(SETUP["hght"], SETUP["wdth"]),
-                    intensity_background=SETUP["bg"],
+                    len(incomplete_blocks)
                 )
     except SystemExit as e:
         # Cleanup
