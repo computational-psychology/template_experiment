@@ -1,7 +1,6 @@
 import sys
 
 import numpy as np
-
 import stimuli
 from text_displays import texts
 
@@ -39,7 +38,10 @@ def display_stim(ihrl, stim, response_selection):
 
     # Determine position: we want the stimulus in the center of the frame
     window_center = (ihrl.height // 2, ihrl.width // 2)  # Center of the drawing window
-    pos = (window_center[1] - (stim_texture.wdth // 2), window_center[0] - (stim_texture.hght // 2))
+    pos = (
+        window_center[1] - (stim_texture.wdth // 2),
+        window_center[0] - (stim_texture.hght // 2),
+    )
 
     # Create a display: draw texture on the frame buffer
     stim_texture.draw(pos=pos, sz=(stim_texture.wdth, stim_texture.hght))

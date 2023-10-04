@@ -67,11 +67,7 @@ def run_block(ihrl, block, block_id):
 
         # show a break screen automatically after so many trials
         if (end_trial - trial_id) % (end_trial // 2) == 0 and (trial_id - start_trial) > 1:
-            text_displays.block_break(
-                ihrl,
-                trial_id,
-                (start_trial + (end_trial - start_trial))
-            )
+            text_displays.block_break(ihrl, trial_id, (start_trial + (end_trial - start_trial)))
 
         # current trial design variables (convert from pandas row to dict)
         trial = trial.to_dict()
@@ -111,11 +107,7 @@ def experiment_main(ihrl):
             block = run_block(ihrl, block=block, block_id=block_id)
 
             if block_num + 1 < len(incomplete_blocks):
-                text_displays.block_end(
-                    ihrl,
-                    block_num + 1,
-                    len(incomplete_blocks)
-                )
+                text_displays.block_end(ihrl, block_num + 1, len(incomplete_blocks))
     except SystemExit as e:
         # Cleanup
         print("Exiting...")

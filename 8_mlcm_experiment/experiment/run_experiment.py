@@ -113,24 +113,25 @@ def show_instructions(ihrl):
     text_displays.display_text(ihrl=ihrl, text=lines, intensity_background=SETUP["bg"])
 
     return
-    
+
 
 def experiment_main(ihrl):
     # Get all blocks for this session
-    incomplete_blocks = data_management.get_incomplete_blocks(block_signifier='mlcm')
+    incomplete_blocks = data_management.get_incomplete_blocks(block_signifier="mlcm")
     if len(incomplete_blocks) == 0:
         # No existing blocks for this session. Generate.
         design.generate_session()
-        incomplete_blocks = data_management.get_incomplete_blocks(block_signifier='mlcm')
+        incomplete_blocks = data_management.get_incomplete_blocks(block_signifier="mlcm")
     print(f"{len(incomplete_blocks)} incomplete blocks")
 
     # Run
     try:
         # Display instructions and wait to start
         show_instructions(ihrl)
-        btn, _ = ihrl.inputs.readButton(btns=['Space', 'Escape'])
-        if btn == "Escape": sys.exit("Participant terminated experiment.")
-        
+        btn, _ = ihrl.inputs.readButton(btns=["Space", "Escape"])
+        if btn == "Escape":
+            sys.exit("Participant terminated experiment.")
+
         # Iterate over all blocks that need to be presented
         for block_num, (block_id, block) in enumerate(incomplete_blocks.items()):
             # Run block
