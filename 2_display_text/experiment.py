@@ -2,7 +2,6 @@ import sys
 
 import numpy as np
 from hrl import HRL
-
 from text_displays import display_text
 
 # Define window parameters

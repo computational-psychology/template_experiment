@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 import stimuli
-from text_displays import text_to_arr
+from text_displays import texts
 
 stim_names = stimuli.stims.keys()
 
@@ -52,7 +52,7 @@ def display_stim(ihrl, stim, response_selection):
 
 
 # %% DRAW LIKERT OPTIONS
-def draw_options(ihrl, selection):
+def draw_options(ihrl, selection, ppd=stimuli.resolution["ppd"]):
     txt_ints = [0.0] * len(RESPONSE_OPTIONS)
     txt_ints[selection - 1] = 1.0
 
@@ -60,12 +60,13 @@ def draw_options(ihrl, selection):
     response_textures = []
     for i, response in enumerate(RESPONSE_OPTIONS):
         response_texture = ihrl.graphics.newTexture(
-            text_to_arr(
+            texts.text(
                 response,
+                ppd=ppd,
                 intensity_background=ihrl.background,
                 intensity_text=txt_ints[i],
                 fontsize=FONTSIZE,
-            ),
+            )["img"],
             "square",
         )
         response_textures.append(response_texture)

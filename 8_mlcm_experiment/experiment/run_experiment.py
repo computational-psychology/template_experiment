@@ -69,7 +69,6 @@ def run_block(ihrl, block, block_id):
                 ihrl,
                 trial_id,
                 (start_trial + (end_trial - start_trial)),
-                window_shape=(SETUP["hght"], SETUP["wdth"]),
                 intensity_background=SETUP["bg"],
             )
 
@@ -111,7 +110,7 @@ def show_instructions(ihrl):
         "Press MIDDLE button to start",
     ]
 
-    text_displays.display_text(ihrl=ihrl, text=lines, window_shape=(SETUP['hght'], SETUP['wdth']), intensity_background=SETUP['bg'])
+    text_displays.display_text(ihrl=ihrl, text=lines, intensity_background=SETUP["bg"])
 
     return
     
@@ -143,7 +142,6 @@ def experiment_main(ihrl):
                     ihrl,
                     block_num + 1,
                     len(incomplete_blocks),
-                    window_shape=(SETUP["hght"], SETUP["wdth"]),
                     intensity_background=SETUP["bg"],
                 )
     except SystemExit as e:
