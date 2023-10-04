@@ -1,8 +1,9 @@
-import numpy as np
-import stimuli
 import sys
 import time
-import math
+
+import numpy as np
+import stimuli
+import text_displays
 
 
 def display_stim(ihrl, l1, bg1, l2, bg2):
@@ -98,3 +99,28 @@ def run_trial(ihrl, l1, bg1, l2, bg2, **kwargs):
 
     # end trial
     return {"response": btn, "resp.time": t1}
+
+
+def display_instructions(ihrl):
+    """Display instructions to the participant
+
+    Parameters
+    ----------
+    ihrl : hrl-object
+        hrl-interface object to use for display
+    """
+    lines = [
+        "Paired comparisons task",
+        "Please select the stimulus that is",
+        "BRIGHTER",
+        "Press either:",
+        "LEFT or RIGHT",
+        "",
+        "Press MIDDLE button to start",
+    ]
+
+    text_displays.display_text(
+        ihrl=ihrl, text=lines, intensity_background=ihrl.graphics.background
+    )
+
+    return

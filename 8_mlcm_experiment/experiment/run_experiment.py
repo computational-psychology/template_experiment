@@ -7,7 +7,6 @@ Uses HRL on python 3
 @authors: G. Aguilar, July 2023.
 """
 
-
 from socket import gethostname
 
 import data_management
@@ -92,29 +91,6 @@ def run_block(ihrl, block, block_id):
     return block
 
 
-def show_instructions(ihrl):
-    """Display instructions to the participant
-
-    Parameters
-    ----------
-    ihrl : hrl-object
-        hrl-interface object to use for display
-    """
-    lines = [
-        "Paired comparisons task",
-        "Please select the stimulus that is",
-        "BRIGHTER",
-        f"Press either:",
-        "LEFT or RIGHT",
-        "",
-        "Press MIDDLE button to start",
-    ]
-
-    text_displays.display_text(ihrl=ihrl, text=lines, intensity_background=SETUP["bg"])
-
-    return
-
-
 def experiment_main(ihrl):
     # Get all blocks for this session
     incomplete_blocks = data_management.get_incomplete_blocks(block_signifier="mlcm")
@@ -127,7 +103,7 @@ def experiment_main(ihrl):
     # Run
     try:
         # Display instructions and wait to start
-        show_instructions(ihrl)
+        experiment_logic.display_instructions(ihrl)
         btn, _ = ihrl.inputs.readButton(btns=["Space", "Escape"])
         if btn == "Escape":
             sys.exit("Participant terminated experiment.")
