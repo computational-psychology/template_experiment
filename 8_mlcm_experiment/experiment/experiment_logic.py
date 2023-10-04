@@ -15,47 +15,26 @@ def display_stim(
 ):
     """Display stimulus for current trial"""
 
-    stimulus_left = stimuli.sbc_circular(
-        intensity_target=target_intensity_left,
-        intensity_surround=surround_intensity_left,
-        intensity_background=ihrl.graphics.background,
+    stimulus = stimuli.sbc(
+        intensity_targets=(target_intensity_left, target_intensity_right),
+        intensity_contexts=(surround_intensity_left, surround_intensity_right),
     )
-
-    stimulus_right = stimuli.sbc_circular(
-        intensity_target=target_intensity_right,
-        intensity_surround=surround_intensity_right,
-        intensity_background=ihrl.graphics.background,
-    )
-
-    ppd = stimuli.resolution["ppd"]
 
     # Convert the stimulus image(matrix) to an OpenGL texture
-    stim_texture_left = ihrl.graphics.newTexture(stimulus_left["img"])
-    stim_texture_right = ihrl.graphics.newTexture(stimulus_right["img"])
+    stim_texture = ihrl.graphics.newTexture(stimulus["img"])
 
-    # Determine position: we want the stimulus around the center
-    center = (ihrl.width // 2, ihrl.height // 2)
-
-    R = 4  # deg
-    offset_x = int(ppd * R * 0.866)  # cos(30) = 0.866
-    offset_y = 0
-
-    pos_left = (
-        center[0] - offset_x - (stim_texture_left.wdth // 2),
-        center[1] + offset_y - (stim_texture_left.hght // 2),
-    )
-
-    pos_right = (
-        center[0] + offset_x - (stim_texture_left.wdth // 2),
-        center[1] + offset_y - (stim_texture_left.hght // 2),
+    # Determine position: we want the stimulus in the center of the frame
+    window_center = (ihrl.height // 2, ihrl.width // 2)  # Center of the drawing window
+    pos = (
+        window_center[1] - (stim_texture.wdth // 2),
+        window_center[0] - (stim_texture.hght // 2),
     )
 
     # Draw textures on the frame buffer
     draw_fixation_cross(ihrl)
 
-    # Draw SBCs
-    stim_texture_left.draw(pos=pos_left, sz=(stim_texture_left.wdth, stim_texture_left.hght))
-    stim_texture_right.draw(pos=pos_right, sz=(stim_texture_right.wdth, stim_texture_right.hght))
+    # Create a display: draw texture on the frame buffer
+    stim_texture.draw(pos=pos, sz=(stim_texture.wdth, stim_texture.hght))
 
     # Display: flip the frame buffer
     ihrl.graphics.flip()  # flips the frame buffer to show everything

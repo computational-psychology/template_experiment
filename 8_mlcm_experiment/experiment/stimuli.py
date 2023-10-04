@@ -1,36 +1,35 @@
+import numpy as np
 import stimupy
 
-TARGET_SIZE = 1
+# Defaults
+TARGET_SIZE = 2  # deg. visual angle, bounding square size
+PPD = 48  # default on our ViewPixx setup
 
-resolution = {
-    "visual_size": (TARGET_SIZE * 5, TARGET_SIZE * 5),
-    "ppd": 48,
-}
+INTENSITY_BACKGROUND = 0.3
 
 
 # %% SBC circular
-def sbc_circular(intensity_target, intensity_surround, intensity_background):
-    return stimupy.sbcs.circular(
-        **resolution,
-        target_radius=TARGET_SIZE,
-        surround_radius=TARGET_SIZE * 2,
-        intensity_target=intensity_target,
-        intensity_surround=intensity_surround,
+def sbc(
+    ppd=PPD,
+    intensity_targets=(0.5, 0.5),
+    intensity_contexts=(0.0, 1.0),
+    target_size=TARGET_SIZE,
+    intensity_background=INTENSITY_BACKGROUND,
+):
+    visual_size = np.array((7, 10)) * target_size
+
+    return stimupy.stimuli.sbcs.circular_two_sided(
+        ppd=ppd,
+        visual_size=visual_size,
+        target_radius=target_size / 2,
+        surround_radius=target_size,
+        intensity_target=intensity_targets,
+        intensity_surround=intensity_contexts,
         intensity_background=intensity_background,
     )
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
+    stim = sbc(intensity_contexts=(0.0, 1.0))
 
-    im1 = sbc_circular(0.5, 0.0, intensity_background=0.3)
-    im2 = sbc_circular(0.5, 1.0, intensity_background=0.3)
-
-    print(im1.keys())
-
-    fig, axes = plt.subplots(1, 2, figsize=(8, 16))
-    axes[0].imshow(im1["img"], cmap="gray", vmin=0, vmax=1.0)
-    axes[1].imshow(im2["img"], cmap="gray", vmin=0, vmax=1.0)
-    plt.show()
-
-    print(im1["img"].shape)
+    stimupy.utils.plot_stim(stim)
