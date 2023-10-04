@@ -32,7 +32,7 @@ def whites(intensity_target, target_side, intensity_match):
     return stimupy.stimuli.whites.white(
         **resolution,
         bar_width=target_size,
-        target_indices=(2, -3),
+        target_indices=(3, -2),
         target_heights=target_size,
         intensity_bars=(0.0, 1.0),
         intensity_target=intensities

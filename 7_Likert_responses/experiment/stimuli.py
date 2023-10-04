@@ -29,6 +29,7 @@ left = stimupy.stimuli.rings.rectangular_generalized(
     visual_size=(resolution["visual_size"][0], resolution["visual_size"][1] / 2),
     radii=radii,
     target_indices=1,
+    intensity_frames=(1, 0),
 )
 right = stimupy.stimuli.rings.rectangular_generalized(
     ppd=resolution["ppd"],
@@ -41,7 +42,7 @@ stims["bullseye"] = stimupy.utils.stack_dicts(left, right, direction="horizontal
 
 # High-freq, extended
 bullseye_hfe = stimupy.stimuli.bullseyes.rectangular_two_sided(
-    **resolution, frame_width=target_size / 2
+    **resolution, frame_width=target_size / 2, intensity_frames=((0.0, 1.0), (1.0, 0.0))
 )
 stims["bullseye, high freq extended"] = bullseye_hfe
 
@@ -67,7 +68,9 @@ frame_mask = np.where(bullseye_hfe["target_mask"], 1, frame_mask)
 # -------------------------- #
 # %%         SBC             #
 # -------------------------- #
-stims["sbc"] = stimupy.stimuli.sbcs.two_sided(**resolution, target_size=target_size)
+stims["sbc"] = stimupy.stimuli.sbcs.basic_two_sided(
+    **resolution, target_size=target_size, intensity_background=(0.0, 1.0)
+)
 
 # separated
 sbc_separate = deepcopy(stims["bullseye"])
@@ -101,7 +104,7 @@ whites = {
     "whites": stimupy.stimuli.whites.white(
         **resolution,
         bar_width=target_size,
-        target_indices=(2, -3),
+        target_indices=(3, -2),
         target_heights=target_size,
         intensity_bars=(0, 1)
     ),
@@ -109,7 +112,7 @@ whites = {
         ppd=resolution["ppd"],
         visual_size=(3 * target_size, resolution["visual_size"][1]),
         bar_width=target_size,
-        target_indices=(2, -3),
+        target_indices=(3, -2),
         target_heights=target_size,
         intensity_bars=(0, 1),
     ),
@@ -132,7 +135,7 @@ stims["strip"] = stimupy.stimuli.whites.white(
     ppd=resolution["ppd"],
     visual_size=(target_size, resolution["visual_size"][1]),
     bar_width=target_size,
-    target_indices=(2, 7),
+    target_indices=(3, -2),
     target_heights=target_size,
     intensity_bars=(1, 0),
 )

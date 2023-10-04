@@ -14,11 +14,11 @@ __all__ = ["sbc", "whites"]
 
 # %% SBC
 def sbc(intensity_target, intensity_left, intensity_right):
-    return stimupy.stimuli.sbcs.two_sided(
+    return stimupy.stimuli.sbcs.basic_two_sided(
         **resolution,
         target_size=target_size,
         intensity_target=intensity_target,
-        intensity_backgrounds=(intensity_left, intensity_right)
+        intensity_background=(intensity_left, intensity_right)
     )
 
 
