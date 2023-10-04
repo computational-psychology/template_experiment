@@ -6,19 +6,25 @@ import stimuli
 import text_displays
 
 
-def display_stim(ihrl, l1, bg1, l2, bg2):
+def display_stim(
+    ihrl,
+    target_intensity_left,
+    surround_intensity_left,
+    target_intensity_right,
+    surround_intensity_right,
+):
     """Display stimulus for current trial"""
 
     stimulus_left = stimuli.sbc_circular(
-        intensity_target=l1,
-        intensity_background=bg1,
-        bg=ihrl.graphics.background,
+        intensity_target=target_intensity_left,
+        intensity_surround=surround_intensity_left,
+        intensity_background=ihrl.graphics.background,
     )
 
     stimulus_right = stimuli.sbc_circular(
-        intensity_target=l2,
-        intensity_background=bg2,
-        bg=ihrl.graphics.background,
+        intensity_target=target_intensity_right,
+        intensity_surround=surround_intensity_right,
+        intensity_background=ihrl.graphics.background,
     )
 
     ppd = stimuli.resolution["ppd"]
@@ -72,7 +78,14 @@ def display_fixation_cross(ihrl):
     return
 
 
-def run_trial(ihrl, l1, bg1, l2, bg2, **kwargs):
+def run_trial(
+    ihrl,
+    target_intensity_left,
+    surround_intensity_left,
+    target_intensity_right,
+    surround_intensity_right,
+    **kwargs
+):
     """Function that runs sequence of events during one trial"""
 
     # Fixation cross
@@ -84,10 +97,10 @@ def run_trial(ihrl, l1, bg1, l2, bg2, **kwargs):
     # Display stimuli
     display_stim(
         ihrl,
-        l1=l1,
-        bg1=bg1,
-        l2=l2,
-        bg2=bg2,
+        target_intensity_left=target_intensity_left,
+        surround_intensity_left=surround_intensity_left,
+        target_intensity_right=target_intensity_right,
+        surround_intensity_right=surround_intensity_right,
     )
 
     # Wait for answer

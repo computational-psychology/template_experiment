@@ -1,29 +1,30 @@
 import stimupy
 
+TARGET_SIZE = 1
+
 resolution = {
-    "visual_size": (5, 5),
+    "visual_size": (TARGET_SIZE * 5, TARGET_SIZE * 5),
     "ppd": 48,
 }
 
-target_size = resolution["visual_size"][1] / 3
-
 
 # %% SBC circular
-def sbc_circular(intensity_target, intensity_background, bg):
-    return stimupy.bullseyes.circular(
+def sbc_circular(intensity_target, intensity_surround, intensity_background):
+    return stimupy.sbcs.circular(
         **resolution,
+        target_radius=TARGET_SIZE,
+        surround_radius=TARGET_SIZE * 2,
         intensity_target=intensity_target,
-        intensity_background=bg,
-        intensity_rings=[intensity_background, intensity_background, intensity_background],
-        n_rings=3,
+        intensity_surround=intensity_surround,
+        intensity_background=intensity_background,
     )
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    im1 = sbc_circular(0.5, 0.0, bg=0.3)
-    im2 = sbc_circular(0.5, 1.0, bg=0.3)
+    im1 = sbc_circular(0.5, 0.0, intensity_background=0.3)
+    im2 = sbc_circular(0.5, 1.0, intensity_background=0.3)
 
     print(im1.keys())
 
