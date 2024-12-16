@@ -2,41 +2,22 @@
 
 Repository containing templates to be used with [HRL](https://github.com/computational-psychology/hrl)
 
+The repository works as a tutorial, showing step-by-step the different 
+coding components that are necessary to build a psychophysical experiment
+with HRL. 
 
-## MLCM experiment - *new file organization - only use this for the moment*
+If it is the first time using `HRL`, then start by looking at `0_basics`.
 
-Run:
+Alternatively you can take a look at a working experiment example,
+for example the experiment inside `5_mutual_matching`.
 
-```
-python mlcm_experiment.py
-```
+In each experiment folder there is a markdown file `.md` that 
+explains the logic, and a script `run_experiment.py` that starts the experiment;
+this is always the entry point to the templates. So to run an
+example, just do
 
-and use 'demo' as observer name
+`python run_experiment.py`
 
-<img src="screenshots/screenshot_mlcm.png" width="500"/>
+and type `demo` as observer name.
 
-
-
-## MLDS experiment with the method of triads
-
-Run:
-
-```
-python mlds_experiment.py
-```
-
-and use 'demo' as observer name
-
-<img src="screenshots/screenshot_mlds.png" width="500"/>
-
-
-## Asymmetric matching experiment with an external matching field
-
-Run:
-```
-python matching_experiment.py
-```
-Use 'demo' as observer name
-
-<img src="screenshots/screenshot_matching.png" width="500"/>
 
