@@ -142,7 +142,7 @@ if __name__ == "__main__":
         # inputs="responsepixx",  # In the lab, we use the responsepixx input device
         hght=SHAPE[0],
         wdth=SHAPE[1],
-        scrn=0,  # Which screen (monitor) to use
+        scrn=1,  # Which screen (monitor) to use
         fs=False,  # Fullscreen?
         bg=0.5,  # background intensity (black=0.0; white=1.0)
     )

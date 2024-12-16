@@ -1,5 +1,4 @@
 import sys
-
 from stimupy.components import texts
 
 LANG = "en"

@@ -45,7 +45,7 @@ else:
     SETUP = {
         "graphics": "gpu",
         "inputs": "keyboard",
-        "scrn": 0,
+        "scrn": 1,
         "lut": None,
         "fs": False,
         "wdth": 1920,
