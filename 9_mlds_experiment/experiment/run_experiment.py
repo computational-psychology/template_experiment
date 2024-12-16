@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """
-MLCM experiment on simultaneous brightness contrast,
-with disk-and-annulus stimuli
+MLDS experiment on simple disks with uniform luminance
 
-Uses HRL on python 3
+HRL on python 3
 
-@authors: G. Aguilar, July 2023.
+@authors: G. Aguilar, Dec 2024.
 """
+
 
 from socket import gethostname
 
@@ -64,11 +64,12 @@ def run_block(ihrl, block, block_id):
         print(f"TRIAL {trial_id}")
 
         # show a break screen automatically after so many trials
-        if (end_trial - trial_id) % (end_trial // 2) == 0 and (trial_id - start_trial) > 1:
+        if (end_trial - trial_id) % (end_trial // 4) == 0 and (trial_id - start_trial) > 1:
             text_displays.block_break(
                 ihrl,
                 trial_id,
                 (start_trial + (end_trial - start_trial)),
+                window_shape=(SETUP["hght"], SETUP["wdth"]),
                 intensity_background=SETUP["bg"],
             )
 
@@ -92,23 +93,47 @@ def run_block(ihrl, block, block_id):
     return block
 
 
+def show_instructions(ihrl):
+    """Display instructions to the participant
+
+    Parameters
+    ----------
+    ihrl : hrl-object
+        hrl-interface object to use for display
+    """
+    lines = [
+        "Triads paradigm",
+        "Please select the stimulus pair that is",
+        "MOST DIFFERENT in BRIGHTNESS",
+        "LEFT-MIDDLE or MIDDLE-RIGHT", 
+        "",
+        f"Press either:",
+        "LEFT or RIGHT",
+        "",
+        "Press MIDDLE button to start",
+    ]
+
+    text_displays.display_text(ihrl=ihrl, text=lines, window_shape=(SETUP['hght'], SETUP['wdth']), intensity_background=SETUP['bg'])
+
+    return
+    
+
 def experiment_main(ihrl):
     # Get all blocks for this session
-    incomplete_blocks = data_management.get_incomplete_blocks(block_signifier="mlcm")
+    incomplete_blocks = data_management.get_incomplete_blocks(block_signifier='mlds')
     if len(incomplete_blocks) == 0:
         # No existing blocks for this session. Generate.
         design.generate_session()
-        incomplete_blocks = data_management.get_incomplete_blocks(block_signifier="mlcm")
+        incomplete_blocks = data_management.get_incomplete_blocks(block_signifier='mlds')
     print(f"{len(incomplete_blocks)} incomplete blocks")
 
     # Run
     try:
         # Display instructions and wait to start
-        experiment_logic.display_instructions(ihrl)
-        btn, _ = ihrl.inputs.readButton(btns=["Space", "Escape"])
-        if btn == "Escape":
-            sys.exit("Participant terminated experiment.")
-
+        show_instructions(ihrl)
+        btn, _ = ihrl.inputs.readButton(btns=['Space', 'Escape'])
+        if btn == "Escape": sys.exit("Participant terminated experiment.")
+        
         # Iterate over all blocks that need to be presented
         for block_num, (block_id, block) in enumerate(incomplete_blocks.items()):
             # Run block
@@ -120,6 +145,7 @@ def experiment_main(ihrl):
                     ihrl,
                     block_num + 1,
                     len(incomplete_blocks),
+                    window_shape=(SETUP["hght"], SETUP["wdth"]),
                     intensity_background=SETUP["bg"],
                 )
     except SystemExit as e:
